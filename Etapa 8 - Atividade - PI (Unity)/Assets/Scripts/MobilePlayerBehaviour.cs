@@ -1,13 +1,17 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody))]
 public class MobilePlayerBehaviour : MonoBehaviour
 {
+    public int health = 0;
     public int rotationSpeed = 0;
+    public int maxAmmoOnWeapon = 0;
+    public int maxCarryingAmmo = 0;
     public float moveSpeed = 0.0f;
-    public float bulletSpeed = 0.0f;
     public float shootCooldown = 0.0f;
-    public GameObject bulletPrefab = null;
+    public float reloadTime = 0.0f;
+    public GameObject bulletPrefab;
     public GameObject bulletSpawn = null;
     public LeftJoystick leftJoystick = null;
     public RightJoystick rightJoystick = null;
@@ -15,14 +19,18 @@ public class MobilePlayerBehaviour : MonoBehaviour
     //public Animator animator = null;
 
     private bool isShootOnCooldown = false;
+    private int ammo = 0;
+    private int bulletPoolCounter = 0;
+    private int maxAmmo = 0;
     private float shootCooldownTimer = 0.0f;
     private float leftJoystickX = 0.0f;
     private float leftJoystickY = 0.0f;
     private float rightJoystickX = 0.0f;
     private float rightJoytsickY = 0.0f;
+    private GameObject[] bulletPool = new GameObject[10];
     private Vector3 leftJoystickInput = Vector3.zero;
     private Vector3 rightJoystickInput = Vector3.zero;
-    private Rigidbody rigidBody = null; 
+    private Rigidbody rigidBody = null;
 
     void Start()
     {
@@ -37,6 +45,16 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
     private void StartStuff()
     {
+        maxAmmo = maxCarryingAmmo;
+        ammo = maxAmmoOnWeapon;
+        bulletPoolCounter = 0;
+
+        for (int i = 0; i < bulletPool.Length; i++)
+        {
+            bulletPool[i] = Instantiate(bulletPrefab, bulletSpawn.transform.position, bulletSpawn.transform.rotation);
+            bulletPool[i].SetActive(false);
+        }
+
         if (transform.GetComponent<Rigidbody>() == null)
         {
             Debug.LogError("A RigidBody component is required on this game object.");
@@ -176,28 +194,95 @@ public class MobilePlayerBehaviour : MonoBehaviour
             }*/
 
             rigidBody.transform.Translate(leftJoystickInput * Time.fixedDeltaTime);
+
             Fire();
         }
+
+        Reload();
+    }
+
+    public int GetAmmo()
+    {
+        return ammo;
+    }
+
+    public int GetMaxAmmo()
+    {
+        return maxAmmo;
+    }
+
+    public int GetHealth()
+    {
+        return health;
     }
 
     public void Fire()
     {
-        if (!isShootOnCooldown)
+        if (!isShootOnCooldown && ammo > 0)
         {
-            GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.transform.position, bulletSpawn.transform.rotation) as GameObject;
-            bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * bulletSpeed;
+            if (bulletPoolCounter >= bulletPool.Length)
+            {
+                bulletPoolCounter = 0;
+            }
+
+            bulletPool[bulletPoolCounter].transform.position = bulletSpawn.transform.position;
+            bulletPool[bulletPoolCounter].transform.rotation = bulletSpawn.transform.rotation;
+            bulletPool[bulletPoolCounter].SetActive(true);
+            bulletPoolCounter++;
+            ammo--;
+
             isShootOnCooldown = true;
-            Destroy(bullet, 2.0f);
         }
-        else
+        else if (isShootOnCooldown)
         {
             shootCooldownTimer += Time.deltaTime;
 
-            if(shootCooldownTimer > shootCooldown)
+            if (shootCooldownTimer > shootCooldown)
             {
                 shootCooldownTimer = 0.0f;
                 isShootOnCooldown = false;
             }
         }
+    }
+
+    private void Reload()
+    {
+        if (!isShootOnCooldown && ammo <= 0 && maxAmmo > 0)
+        {
+            shootCooldownTimer += Time.deltaTime;
+
+            if (shootCooldownTimer > reloadTime)
+            {
+                if (maxAmmo - maxAmmoOnWeapon >= 0)
+                {
+                    shootCooldownTimer = 0.0f;
+                    maxAmmo -= maxAmmoOnWeapon;
+                    ammo = maxAmmoOnWeapon;
+                }
+                else
+                {
+                    shootCooldownTimer = 0.0f;
+                    ammo = maxAmmo;
+                    maxAmmo -= maxAmmo;
+                }
+            }
+        }
+    }
+
+    public void DoDamage(int p_damage)
+    {
+        health -= p_damage;
+
+        if (health <= 0)
+        {
+            health = 0;
+            GameControllerBehaviour.gameControllerInstance.ShowEndScreen();
+            gameObject.SetActive(false);
+        }
+    }
+
+    public void AddAmmo(int p_ammo)
+    {
+        maxAmmo += p_ammo;
     }
 }

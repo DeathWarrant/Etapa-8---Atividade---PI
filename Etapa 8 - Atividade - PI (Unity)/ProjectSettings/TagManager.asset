@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Enemy Spawn Point
+  - Bullet
+  - Enemy
+  - Ammo Crate
   layers:
   - Default
   - TransparentFX
@@ -14,9 +17,9 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
+  - Bullet
+  - Crate
+  - GroundWall
   - 
   - 
   - 

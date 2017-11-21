@@ -20,7 +20,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4581063110770324}
   - component: {fileID: 33464603358738944}
-  - component: {fileID: 136728808980853800}
   - component: {fileID: 23358208312050408}
   m_Layer: 0
   m_Name: Enemy Body
@@ -39,9 +38,10 @@ GameObject:
   - component: {fileID: 4290420531881350}
   - component: {fileID: 195307526277042392}
   - component: {fileID: 114134391779656804}
+  - component: {fileID: 136755664497277606}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -55,7 +55,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4836580423082440}
   - component: {fileID: 33804818057826112}
-  - component: {fileID: 65263095865552412}
   - component: {fileID: 23147746720914340}
   m_Layer: 0
   m_Name: Arm R
@@ -73,7 +72,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4739163501828872}
   - component: {fileID: 33896642946648216}
-  - component: {fileID: 65236330756164242}
   - component: {fileID: 23500560742892616}
   m_Layer: 0
   m_Name: Arm L
@@ -260,30 +258,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1857221291232652}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!65 &65236330756164242
-BoxCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1857221291232652}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &65263095865552412
-BoxCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1722243592129268}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &114134391779656804
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -295,14 +269,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e31ea0b15114b94a88f504a849bce8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  health: 10
+  pointsForKilling: 10
+  damage: 5
   enemySpeed: 5
-  player: {fileID: 0}
---- !u!136 &136728808980853800
+  attackCooldown: 1
+  distanceToCauseDamage: 2.5
+  gameControllerBehaviour: {fileID: 0}
+--- !u!136 &136755664497277606
 CapsuleCollider:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1402410128420802}
+  m_GameObject: {fileID: 1555218618299574}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1

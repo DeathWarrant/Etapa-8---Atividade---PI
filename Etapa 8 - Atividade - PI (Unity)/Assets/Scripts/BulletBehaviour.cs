@@ -4,10 +4,51 @@ using UnityEngine;
 
 public class BulletBehaviour : MonoBehaviour
 {
-    //public int bulletDamage = 0;
+    public int bulletDamage = 0;
+    public float bulletSpeed = 0.0f;
+    public float lifeTime = 0.0f;
+
+    private float lifeTimer = 0.0f;
+
+    private Rigidbody rigidBody = null;
+
+    private void Start()
+    {
+        rigidBody = GetComponent<Rigidbody>();
+    }
+
+    private void Update()
+    {
+        CountLifeTime();
+    }
+
+    private void CountLifeTime()
+    {
+        rigidBody.velocity = gameObject.transform.forward * bulletSpeed;
+
+        lifeTimer += Time.deltaTime;
+
+        if(lifeTimer > lifeTime)
+        {
+            lifeTimer = 0.0f;
+            rigidBody.velocity = Vector3.zero;
+            rigidBody.angularVelocity = Vector3.zero;
+            gameObject.SetActive(false);
+        }
+    }
 
     private void OnCollisionEnter(Collision collision)
     {
-        Destroy(gameObject);
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            collision.gameObject.GetComponent<EnemyBehaviour>().DoDamage(bulletDamage);
+            rigidBody.velocity = Vector3.zero;
+            rigidBody.angularVelocity = Vector3.zero;
+            Debug.Log("Colidiu!");
+        }
+
+        lifeTimer = 0.0f;
+        rigidBody.velocity = Vector3.zero;
+        gameObject.SetActive(false);
     }
 }

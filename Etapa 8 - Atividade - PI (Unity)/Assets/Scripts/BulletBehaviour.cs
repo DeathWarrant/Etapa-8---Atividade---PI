@@ -42,13 +42,12 @@ public class BulletBehaviour : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             collision.gameObject.GetComponent<EnemyBehaviour>().DoDamage(bulletDamage);
-            rigidBody.velocity = Vector3.zero;
-            rigidBody.angularVelocity = Vector3.zero;
             Debug.Log("Colidiu!");
         }
 
         lifeTimer = 0.0f;
         rigidBody.velocity = Vector3.zero;
+        rigidBody.angularVelocity = Vector3.zero;
         gameObject.SetActive(false);
     }
 }

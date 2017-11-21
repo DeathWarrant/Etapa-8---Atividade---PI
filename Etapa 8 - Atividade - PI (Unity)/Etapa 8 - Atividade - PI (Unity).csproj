@@ -235,6 +235,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\AmmoCrateBehaviour.cs" />
+    <Compile Include="Assets\Scripts\API Client\APIClient.cs" />
+    <Compile Include="Assets\Scripts\API Client\JSonHelper.cs" />
+    <Compile Include="Assets\Scripts\API Client\Player.cs" />
     <Compile Include="Assets\Scripts\BulletBehaviour.cs" />
     <Compile Include="Assets\Scripts\CameraBehaviour.cs" />
     <Compile Include="Assets\Scripts\DualJoystickTouchContoller.cs" />

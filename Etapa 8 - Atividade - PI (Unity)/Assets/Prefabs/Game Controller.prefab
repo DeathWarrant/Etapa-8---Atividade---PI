@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4162796834895956}
   - component: {fileID: 114921199015678368}
+  - component: {fileID: 114214838309083498}
   m_Layer: 0
   m_Name: Game Controller
   m_TagString: Untagged
@@ -40,6 +41,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114214838309083498
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1512635613873676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb338a811a4704d45b8d6e9459fe95a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseUrl: http://localhost:58904/API
 --- !u!114 &114921199015678368
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -57,13 +70,10 @@ MonoBehaviour:
   enemyToSpawn: {fileID: 1555218618299574, guid: f5b6224e2bc883349aaf69bc9fc02d32,
     type: 2}
   ammoCrates:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  joystickCanvas: {fileID: 0}
-  playingHUD: {fileID: 0}
-  endScreen: {fileID: 0}
-  ammoText: {fileID: 0}
-  pointsText: {fileID: 0}
-  totalPoints: {fileID: 0}
-  healthText: {fileID: 0}
+  - {fileID: 1107445887638982, guid: 6e89af3b82a10544d892160c80688af2, type: 2}
+  - {fileID: 1107445887638982, guid: 6e89af3b82a10544d892160c80688af2, type: 2}
+  - {fileID: 1107445887638982, guid: 6e89af3b82a10544d892160c80688af2, type: 2}
+  joystickCanvas: {fileID: 1502625798337136, guid: 14f042e8b9be78d4eac1a152c4698fbe,
+    type: 2}
+  playingHUD: {fileID: 1529647520673208, guid: 8e4470ae461a1b64594057a651297c0c, type: 2}
+  endScreen: {fileID: 1759807628404440, guid: 8e4470ae461a1b64594057a651297c0c, type: 2}

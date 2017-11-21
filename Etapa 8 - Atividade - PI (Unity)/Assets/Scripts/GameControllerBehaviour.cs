@@ -16,10 +16,6 @@ public class GameControllerBehaviour : MonoBehaviour
     public GameObject joystickCanvas = null;
     public GameObject playingHUD = null;
     public GameObject endScreen = null;
-    public Text ammoText = null;
-    public Text pointsText = null;
-    public Text totalPoints = null;
-    public Text healthText = null;
 
     private bool isEndScreen = false;
     private int enemyCounter = 0;
@@ -27,13 +23,17 @@ public class GameControllerBehaviour : MonoBehaviour
     private float[] ammoCrateSpawnTimers;
     private GameObject enemySpawnPoint = null;
     private MobilePlayerBehaviour mobilePlayerBehaviour = null;
-
-    void Start()
+    private Text ammoText = null;
+    private Text pointsText = null;
+    private Text totalPoints = null;
+    private Text healthText = null;
+    
+    private void Start()
     {
         StartComponents();
     }
 
-    void Update()
+    private void Update()
     {
         UpdateStuff();
     }
@@ -48,6 +48,11 @@ public class GameControllerBehaviour : MonoBehaviour
         enemyCounter = 0;
         playerPoints = 0;
         ammoCrateSpawnTimers = new float[ammoCrates.Length];
+
+        ammoText = playingHUD.transform.Find("Ammo").GetComponent<Text>();
+        pointsText = playingHUD.transform.Find("Points").GetComponent<Text>();
+        healthText = playingHUD.transform.Find("Health").GetComponent<Text>();
+        totalPoints = endScreen.transform.Find("Total Points").GetComponent<Text>();
 
         for (int i = 0; i < ammoCrateSpawnTimers.Length; i++)
         {

@@ -22,14 +22,12 @@ public class GameControllerBehaviour : MonoBehaviour
     public List<Text> leaderboardNames = new List<Text>();
     public List<Text> leaderboardPoints = new List<Text>();
 
-    private string p_name = "PUT";
-    private int p_points = 12345;
-
     private enum States { Menu, Gaming, Dead }
     private States gameState = States.Menu;
     private bool isFirstStart = false;
     private int enemyCounter = 0;
     private int playerPoints = 0;
+    private int arrayCapacity = 0;
     private float[] ammoCrateSpawnTimers;
     private APIClient apiClient = null;
     private GameObject enemySpawnPoint = null;
@@ -38,6 +36,7 @@ public class GameControllerBehaviour : MonoBehaviour
     private Text pointsText = null;
     private Text totalPoints = null;
     private Text healthText = null;
+    private InputField inputField = null;
 
     private void Start()
     {
@@ -60,9 +59,14 @@ public class GameControllerBehaviour : MonoBehaviour
             Debug.Log("GameController já apresenta uma instância.");
         }
         apiClient = GameObject.FindObjectOfType<APIClient>().GetComponent<APIClient>();
-        apiClient.GetLeaderboard();
         StartCoroutine(UpdateMenu());
         gameState = States.Menu;
+
+        ammoText = playingHUD.transform.Find("Ammo").GetComponent<Text>();
+        pointsText = playingHUD.transform.Find("Points").GetComponent<Text>();
+        healthText = playingHUD.transform.Find("Health").GetComponent<Text>();
+        totalPoints = endScreen.transform.Find("Background").Find("Background").Find("Total Points").GetComponent<Text>();
+        inputField = endScreen.transform.Find("Background").Find("Background").Find("InputField Background").Find("InputField Text").GetComponent<InputField>();
 
         isFirstStart = true;
         menu.SetActive(true);
@@ -71,12 +75,12 @@ public class GameControllerBehaviour : MonoBehaviour
         endScreen.SetActive(false);
         player.SetActive(false);
         enemySpawnPoint = GameObject.FindGameObjectWithTag("Enemy Spawn Point");
+        apiClient.GetLeaderboard();
     }
 
     private void RestartMenu()
     {
         gameState = States.Menu;
-        apiClient.GetLeaderboard();
 
         GameObject[] enemies = new GameObject[enemyLimit];
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -101,6 +105,7 @@ public class GameControllerBehaviour : MonoBehaviour
         playingHUD.SetActive(false);
         endScreen.SetActive(false);
         player.SetActive(false);
+        apiClient.GetLeaderboard();
     }
 
     private void StartGameComponents()
@@ -123,10 +128,6 @@ public class GameControllerBehaviour : MonoBehaviour
         endScreen.SetActive(false);
         mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
         ammoCrateSpawnTimers = new float[ammoCrates.Length];
-        ammoText = playingHUD.transform.Find("Ammo").GetComponent<Text>();
-        pointsText = playingHUD.transform.Find("Points").GetComponent<Text>();
-        healthText = playingHUD.transform.Find("Health").GetComponent<Text>();
-        totalPoints = endScreen.transform.Find("Background").Find("Background").Find("Total Points").GetComponent<Text>();
 
         for (int i = 0; i < ammoCrateSpawnTimers.Length; i++)
         {
@@ -221,7 +222,9 @@ public class GameControllerBehaviour : MonoBehaviour
             {
                 if (apiClient.players.Length != 0)
                 {
-                    for (int i = 0; i < apiClient.players.Length; i++)
+                    arrayCapacity = apiClient.players.Length < leaderboardNames.Capacity ? apiClient.players.Length : leaderboardNames.Capacity;
+
+                    for (int i = 0; i < arrayCapacity; i++)
                     {
                         leaderboardNames[i].text = apiClient.players[i].Name;
                         leaderboardPoints[i].text = apiClient.players[i].Points.ToString();
@@ -231,8 +234,13 @@ public class GameControllerBehaviour : MonoBehaviour
                 }
             }
 
-            yield return new WaitForSeconds(5.0f);
+            yield return new WaitForSeconds(2.0f);
         }
+    }
+
+    public int GetGameState()
+    {
+        return (int)gameState;
     }
 
     private void UpdateStuff()
@@ -278,7 +286,8 @@ public class GameControllerBehaviour : MonoBehaviour
             }
             else if (gameState == States.Dead)
             {
-                apiClient.PostOnLeaderBoard(p_name, p_points);
+                string playerName = inputField.text;
+                apiClient.PostOnLeaderBoard(playerName, playerPoints);
                 RestartMenu();
             }
         }
@@ -290,7 +299,8 @@ public class GameControllerBehaviour : MonoBehaviour
             }
             else if (gameState == States.Dead)
             {
-                apiClient.PostOnLeaderBoard(p_name, p_points);
+                string playerName = inputField.text;
+                apiClient.PostOnLeaderBoard(playerName, playerPoints);
                 RestartMenu();
             }
         }

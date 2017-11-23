@@ -33,7 +33,7 @@ public class EnemyBehaviour : MonoBehaviour
     {
         player = GameObject.FindGameObjectWithTag("Player");
 
-        if (player.activeInHierarchy)
+        if (GameControllerBehaviour.gameControllerInstance.GetGameState() != 2)
         {
             mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
         }
@@ -46,9 +46,9 @@ public class EnemyBehaviour : MonoBehaviour
 
     private void CalculateDistance()
     {
-        if(!isAttackOnCooldown)
+        if (!isAttackOnCooldown)
         {
-            if (player.activeInHierarchy)
+            if (GameControllerBehaviour.gameControllerInstance.GetGameState() != 2)
             {
                 Vector3 distance = player.transform.position - transform.position;
                 float sqrLen = distance.sqrMagnitude;
@@ -61,11 +61,11 @@ public class EnemyBehaviour : MonoBehaviour
                 }
             }
         }
-        else if(isAttackOnCooldown)
+        else if (isAttackOnCooldown)
         {
             attackCooldownTimer += Time.deltaTime;
 
-            if(attackCooldownTimer > attackCooldown)
+            if (attackCooldownTimer > attackCooldown)
             {
                 attackCooldownTimer = 0.0f;
                 isAttackOnCooldown = false;
@@ -77,14 +77,17 @@ public class EnemyBehaviour : MonoBehaviour
     {
         while (true)
         {
-            if (player == null)
+            if (GameControllerBehaviour.gameControllerInstance.GetGameState() != 2 &&
+                GameControllerBehaviour.gameControllerInstance.AIActive)
             {
-                Debug.LogError("Player not defined.");
-            }
-            else
-            {
-                if (GameControllerBehaviour.gameControllerInstance.AIActive)
+                if (player == null)
+                {
+                    Debug.LogError("Player not defined.");
+                }
+                else
+                {
                     navMeshAgent.destination = player.transform.position;
+                }
             }
 
             yield return new WaitForSeconds(0.1f);
@@ -95,7 +98,7 @@ public class EnemyBehaviour : MonoBehaviour
     {
         health -= p_damage;
 
-        if(health <= 0)
+        if (health <= 0)
         {
             health = 0;
             GameControllerBehaviour.gameControllerInstance.AddPoints(pointsForKilling);

@@ -30,15 +30,18 @@ public class BulletBehaviour : MonoBehaviour
 
         if(lifeTimer > lifeTime)
         {
-            lifeTimer = 0.0f;
             rigidBody.velocity = Vector3.zero;
             rigidBody.angularVelocity = Vector3.zero;
+            lifeTimer = 0.0f;
             gameObject.SetActive(false);
         }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
+        rigidBody.velocity = Vector3.zero;
+        rigidBody.angularVelocity = Vector3.zero;
+
         if (collision.gameObject.CompareTag("Enemy"))
         {
             collision.gameObject.GetComponent<EnemyBehaviour>().DoDamage(bulletDamage);
@@ -46,8 +49,6 @@ public class BulletBehaviour : MonoBehaviour
         }
 
         lifeTimer = 0.0f;
-        rigidBody.velocity = Vector3.zero;
-        rigidBody.angularVelocity = Vector3.zero;
         gameObject.SetActive(false);
     }
 }

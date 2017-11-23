@@ -32,7 +32,12 @@ public class EnemyBehaviour : MonoBehaviour
     private void StartComponents()
     {
         player = GameObject.FindGameObjectWithTag("Player");
-        mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
+
+        if (player.activeInHierarchy)
+        {
+            mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
+        }
+
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.speed = enemySpeed;
 
@@ -41,16 +46,19 @@ public class EnemyBehaviour : MonoBehaviour
 
     private void CalculateDistance()
     {
-        if(!isAttackOnCooldown && player.activeInHierarchy)
+        if(!isAttackOnCooldown)
         {
-            Vector3 distance = player.transform.position - transform.position;
-            float sqrLen = distance.sqrMagnitude;
-            //Debug.Log(sqrLen);
-
-            if (sqrLen < distanceToCauseDamage * distanceToCauseDamage)
+            if (player.activeInHierarchy)
             {
-                mobilePlayerBehaviour.DoDamage(damage);
-                isAttackOnCooldown = true;
+                Vector3 distance = player.transform.position - transform.position;
+                float sqrLen = distance.sqrMagnitude;
+                //Debug.Log(sqrLen);
+
+                if (sqrLen < distanceToCauseDamage * distanceToCauseDamage)
+                {
+                    mobilePlayerBehaviour.DoDamage(damage);
+                    isAttackOnCooldown = true;
+                }
             }
         }
         else if(isAttackOnCooldown)

@@ -1,4 +1,5 @@
-﻿public class Player
+﻿[System.Serializable]
+public class Player
 {
     public int PlayerID;
     public string Name;

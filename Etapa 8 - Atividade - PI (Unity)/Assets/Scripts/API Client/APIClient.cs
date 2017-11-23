@@ -5,13 +5,28 @@ using UnityEngine.Networking;
 
 public class APIClient : MonoBehaviour
 {
-    [HideInInspector] public Player[] players = null;
-
     public string baseUrl = null;
 
+    [HideInInspector] public Player[] players = null;
+
+
+    private string tempName = null;
+    private int tempPoints = 0;
     void Start()
     {
+
+    }
+
+    public void GetLeaderboard()
+    {
         StartCoroutine("GetPlayersAPISync");
+    }
+
+    public void PostOnLeaderBoard(string p_name, int p_points)
+    {
+        tempName = p_name;
+        tempPoints = p_points;
+        StartCoroutine("PostItemApiSync");
     }
 
     private IEnumerator GetPlayersAPISync()
@@ -30,9 +45,31 @@ public class APIClient : MonoBehaviour
 
         players = JSonHelper.getJsonArray<Player>(response);
 
-        foreach (Player p in players)
+        /*for (int i = 0; i < players.Length; i++)
         {
-            PrintPlayer(p);
+            PrintPlayer(players[i]);
+        }*/
+    }
+
+    IEnumerator PostItemApiSync()
+    {
+        WWWForm form = new WWWForm();
+
+        form.AddField("Name", tempName);
+        form.AddField("Points", tempPoints);
+
+        using (UnityWebRequest request = UnityWebRequest.Post(baseUrl + "/Players/Create", form))
+        {
+            yield return request.SendWebRequest();
+
+            if (request.isNetworkError || request.isHttpError)
+            {
+                Debug.Log(request.error);
+            }
+            else
+            {
+                Debug.Log("Envio do item efetudado com sucesso");
+            }
         }
     }
 

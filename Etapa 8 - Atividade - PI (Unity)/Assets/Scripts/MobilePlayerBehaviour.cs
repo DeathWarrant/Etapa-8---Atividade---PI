@@ -216,6 +216,15 @@ public class MobilePlayerBehaviour : MonoBehaviour
         return health;
     }
 
+    public void RestartVariables()
+    {
+        health = 100;
+        maxAmmo = maxCarryingAmmo;
+        ammo = maxAmmoOnWeapon;
+        rigidBody.velocity = Vector3.zero;
+        rigidBody.angularVelocity = Vector3.zero;
+    }
+
     public void Fire()
     {
         if (!isShootOnCooldown && ammo > 0)

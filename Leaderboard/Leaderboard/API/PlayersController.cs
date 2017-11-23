@@ -20,7 +20,7 @@ namespace Leaderboard.API
         // GET: api/Players
         public IQueryable<Player> GetPlayers()
         {
-            return db.Players;
+            return db.Players.OrderByDescending(p => p.Points);
         }
 
         // GET: api/Players/5

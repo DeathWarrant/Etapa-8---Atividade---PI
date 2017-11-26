@@ -8,18 +8,39 @@ public class GameControllerBehaviour : MonoBehaviour
 {
     public static GameControllerBehaviour gameControllerInstance { get; set; }
 
+    [Tooltip("If deactivated, enemies will no longer walk towards the player. (They will still cause damage if the player gets next to them)")]
     public bool AIActive = true;
+    [Tooltip("Max number of enemies that will be spawned. (Example: If this number is 5, no more enemies will spawn if there are already 5 enemies alive.)")]
     public int enemyLimit = 0;
+    [Tooltip("Max number of enemies to be killed for the wave to change.")]
+    public int enemyWaveSize = 0;
+    [Tooltip("Number of Health that is added to the enemy's Base Health when the wave grows stronger.")]
+    public int enemyHealthToAdd = 0;
+    [Tooltip("Number of Damage that is added to the enemy's Base Damage when the wave grows stronger.")]
+    public int enemyDamageToAdd = 0;
+    [Tooltip("Number of Speed that is added to the enemy's Base Speed when the wave grows stronger.")]
+    public float enemySpeedToAdd = 0.0f;
+    [Tooltip("Time that will take for ammo crates to respawn after being picked up.")]
     public float timeToRespawnAmmoCrate = 0.0f;
+    [Tooltip("Não mexe aqui seu poura, nem nas variáveis de baixo.")]
     public GameObject player = null;
+    [Tooltip("Poura, disse para não mexer, por que desceu aqui?")]
     public GameObject playerSpawnPoint = null;
+    [Tooltip("Ainda descendo né...")]
     public GameObject enemyToSpawn = null;
+    [Tooltip("Vamos ver até onde vai sua curiosidade.")]
     public GameObject[] ammoCrates;
+    [Tooltip("Descendo ainda -.-'")]
     public GameObject joystickCanvas = null;
+    [Tooltip("Poura, ta vacilando em...")]
     public GameObject menu = null;
+    [Tooltip("Vacilaum morre cedo em...")]
     public GameObject playingHUD = null;
+    [Tooltip("Já disse para não mexer aqui em baixo.")]
     public GameObject endScreen = null;
+    [Tooltip("O que ta fazendo aqui afinal de contas?")]
     public List<Text> leaderboardNames = new List<Text>();
+    [Tooltip("Fico imaginando por que está tão curioso em vir aqui? -.-' Sai daqui meu.")]
     public List<Text> leaderboardPoints = new List<Text>();
 
     private enum States { Menu, Gaming, Dead }
@@ -28,6 +49,8 @@ public class GameControllerBehaviour : MonoBehaviour
     private int enemyCounter = 0;
     private int playerPoints = 0;
     private int arrayCapacity = 0;
+    private int wave = 0;
+    private int waveCounter = 0;
     private float[] ammoCrateSpawnTimers;
     private APIClient apiClient = null;
     private GameObject enemySpawnPoint = null;
@@ -58,6 +81,7 @@ public class GameControllerBehaviour : MonoBehaviour
         {
             Debug.Log("GameController já apresenta uma instância.");
         }
+
         apiClient = GameObject.FindObjectOfType<APIClient>().GetComponent<APIClient>();
         StartCoroutine(UpdateMenu());
         gameState = States.Menu;
@@ -119,6 +143,8 @@ public class GameControllerBehaviour : MonoBehaviour
             Debug.Log("Player já ativo.");
         }
 
+        wave = 0;
+        waveCounter = 0;
         gameState = States.Gaming;
         enemyCounter = 0;
         playerPoints = 0;
@@ -159,6 +185,8 @@ public class GameControllerBehaviour : MonoBehaviour
 
         enemyCounter = 0;
 
+        wave = 0;
+        waveCounter = 0;
         player.transform.position = playerSpawnPoint.transform.position;
         player.SetActive(true);
         menu.SetActive(false);
@@ -191,7 +219,17 @@ public class GameControllerBehaviour : MonoBehaviour
                 {
                     Vector3 positionVec = new Vector3(Random.Range(-30.0f, 30.0f), 1, Random.Range(-30.0f, 30.0f));
                     enemySpawnPoint.transform.position = positionVec;
-                    GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
+
+                    if (wave == 0)
+                    {
+                        Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
+                    }
+                    else
+                    {
+                        GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
+                        enemy.GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd * wave, enemyDamageToAdd * wave, enemySpeedToAdd * wave);
+                    }
+
                     enemyCounter++;
                 }
             }
@@ -260,6 +298,16 @@ public class GameControllerBehaviour : MonoBehaviour
     public void DecreaseEnemyCounter()
     {
         enemyCounter--;
+
+        if (waveCounter < enemyWaveSize)
+        {
+            waveCounter++;
+        }
+        else
+        {
+            wave++;
+            waveCounter = 0;
+        }
     }
 
     public void AddPoints(int p_points)

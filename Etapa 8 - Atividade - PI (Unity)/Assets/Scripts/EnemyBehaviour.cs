@@ -6,15 +6,23 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyBehaviour : MonoBehaviour
 {
-    public int health = 0;
+    [Tooltip("Enemy's base hit points (HP).")]
+    public int baseHealth = 0;
+    [Tooltip("Points that the player will win for killing this enemy.")]
     public int pointsForKilling = 0;
-    public int damage = 0;
-    public float enemySpeed = 0.0f;
+    [Tooltip("Enemy's base damage.")]
+    public int baseDamage = 0;
+    [Tooltip("Enemy's base movement speed.")]
+    public float baseEnemySpeed = 0.0f;
+    [Tooltip("Time between one attack and another.")]
     public float attackCooldown = 0.0f;
+    [Tooltip("Enemy's attack range.")]
     public float distanceToCauseDamage = 0.0f;
+    public AudioClip attackSound = null;
 
     private bool isAttackOnCooldown = false;
     private float attackCooldownTimer = 0.0f;
+    private AudioSource audioSource = null;
     private GameObject player = null;
     private MobilePlayerBehaviour mobilePlayerBehaviour = null;
     private NavMeshAgent navMeshAgent = null;
@@ -26,7 +34,7 @@ public class EnemyBehaviour : MonoBehaviour
 
     private void Update()
     {
-        CalculateDistance();
+        Attack();
     }
 
     private void StartComponents()
@@ -38,13 +46,14 @@ public class EnemyBehaviour : MonoBehaviour
             mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
         }
 
+        audioSource = GetComponent<AudioSource>();
         navMeshAgent = GetComponent<NavMeshAgent>();
-        navMeshAgent.speed = enemySpeed;
+        navMeshAgent.speed = baseEnemySpeed;
 
         StartCoroutine(SetDestination());
     }
 
-    private void CalculateDistance()
+    private void Attack()
     {
         if (!isAttackOnCooldown)
         {
@@ -56,7 +65,8 @@ public class EnemyBehaviour : MonoBehaviour
 
                 if (sqrLen < distanceToCauseDamage * distanceToCauseDamage)
                 {
-                    mobilePlayerBehaviour.DoDamage(damage);
+                    audioSource.PlayOneShot(attackSound, 0.5f);
+                    mobilePlayerBehaviour.DoDamage(baseDamage);
                     isAttackOnCooldown = true;
                 }
             }
@@ -96,14 +106,21 @@ public class EnemyBehaviour : MonoBehaviour
 
     public void DoDamage(int p_damage)
     {
-        health -= p_damage;
+        baseHealth -= p_damage;
 
-        if (health <= 0)
+        if (baseHealth <= 0)
         {
-            health = 0;
+            baseHealth = 0;
             GameControllerBehaviour.gameControllerInstance.AddPoints(pointsForKilling);
             GameControllerBehaviour.gameControllerInstance.DecreaseEnemyCounter();
             Destroy(gameObject);
         }
+    }
+
+    public void IncreasePower(int p_health, int p_damage, float p_speed)
+    {
+        baseHealth += p_health;
+        baseDamage += p_damage;
+        baseEnemySpeed += p_speed;
     }
 }

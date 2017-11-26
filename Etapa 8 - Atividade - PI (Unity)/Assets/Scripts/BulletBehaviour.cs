@@ -4,8 +4,11 @@ using UnityEngine;
 
 public class BulletBehaviour : MonoBehaviour
 {
+    [Tooltip("Damage that the bullet causes.")]
     public int bulletDamage = 0;
+    [Tooltip("Bullet's speed.")]
     public float bulletSpeed = 0.0f;
+    [Tooltip("Bullet's life time.")]
     public float lifeTime = 0.0f;
 
     private float lifeTimer = 0.0f;

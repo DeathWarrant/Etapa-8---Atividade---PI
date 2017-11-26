@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -11,7 +12,12 @@ public class MobilePlayerBehaviour : MonoBehaviour
     public float moveSpeed = 0.0f;
     public float shootCooldown = 0.0f;
     public float reloadTime = 0.0f;
-    public GameObject bulletPrefab;
+    public float walkCooldownTime = 0.0f;
+    public AudioClip[] damageSounds;
+    public AudioClip[] walkSounds;
+    public AudioClip[] weaponSounds;
+    public AudioClip reloadSound = null;
+    public GameObject bulletPrefab = null;
     public GameObject bulletSpawn = null;
     public LeftJoystick leftJoystick = null;
     public RightJoystick rightJoystick = null;
@@ -19,35 +25,42 @@ public class MobilePlayerBehaviour : MonoBehaviour
     //public Animator animator = null;
 
     private bool isShootOnCooldown = false;
+    private bool isWalkOnCooldown = false;
+    private bool isRightStep = true;
+    private bool playReloadSound = true;
     private int ammo = 0;
     private int bulletPoolCounter = 0;
     private int maxAmmo = 0;
     private float shootCooldownTimer = 0.0f;
+    private float walkCooldownTimer = 0.0f;
     private float leftJoystickX = 0.0f;
     private float leftJoystickY = 0.0f;
     private float rightJoystickX = 0.0f;
     private float rightJoytsickY = 0.0f;
+    private AudioSource audioSource = null;
     private GameObject[] bulletPool = new GameObject[10];
+    private Rigidbody rigidBody = null;
     private Vector3 leftJoystickInput = Vector3.zero;
     private Vector3 rightJoystickInput = Vector3.zero;
-    private Rigidbody rigidBody = null;
 
-    void Start()
+    private void Start()
     {
-        StartStuff();
+        StartComponents();
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         GetInputs();
         DoActions();
     }
 
-    private void StartStuff()
+    private void StartComponents()
     {
         maxAmmo = maxCarryingAmmo;
         ammo = maxAmmoOnWeapon;
         bulletPoolCounter = 0;
+
+        audioSource = GetComponent<AudioSource>();
 
         for (int i = 0; i < bulletPool.Length; i++)
         {
@@ -198,6 +211,33 @@ public class MobilePlayerBehaviour : MonoBehaviour
             Fire();
         }
 
+        if(leftJoystickX != 0.0f || leftJoystickY != 0.0f)
+        {
+            WalkSound();
+        }
+
+        if (isShootOnCooldown)
+        {
+            shootCooldownTimer += Time.deltaTime;
+
+            if (shootCooldownTimer > shootCooldown)
+            {
+                shootCooldownTimer = 0.0f;
+                isShootOnCooldown = false;
+            }
+        }
+
+        if (isWalkOnCooldown)
+        {
+            walkCooldownTimer += Time.deltaTime;
+
+            if (walkCooldownTimer > walkCooldownTime)
+            {
+                isWalkOnCooldown = false;
+                walkCooldownTimer = 0.0f;
+            }
+        }
+
         Reload();
     }
 
@@ -225,7 +265,27 @@ public class MobilePlayerBehaviour : MonoBehaviour
         rigidBody.angularVelocity = Vector3.zero;
     }
 
-    public void Fire()
+    private void WalkSound()
+    {
+        if(!isWalkOnCooldown)
+        {
+            if (isRightStep)
+            {
+                audioSource.PlayOneShot(walkSounds[0]);
+                isRightStep = false;
+            }
+            else
+            {
+                audioSource.PlayOneShot(walkSounds[1]);
+                isRightStep = true;
+            }
+
+            isWalkOnCooldown = true;
+        }
+
+    }
+
+    private void Fire()
     {
         if (!isShootOnCooldown && ammo > 0)
         {
@@ -234,6 +294,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
                 bulletPoolCounter = 0;
             }
 
+            audioSource.PlayOneShot(weaponSounds[0], 0.15f);
             bulletPool[bulletPoolCounter].transform.position = bulletSpawn.transform.position;
             bulletPool[bulletPoolCounter].transform.rotation = bulletSpawn.transform.rotation;
             bulletPool[bulletPoolCounter].SetActive(true);
@@ -242,44 +303,42 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
             isShootOnCooldown = true;
         }
-        else if (isShootOnCooldown)
-        {
-            shootCooldownTimer += Time.deltaTime;
-
-            if (shootCooldownTimer > shootCooldown)
-            {
-                shootCooldownTimer = 0.0f;
-                isShootOnCooldown = false;
-            }
-        }
     }
 
     private void Reload()
     {
         if (!isShootOnCooldown && ammo <= 0 && maxAmmo > 0)
         {
+            if(playReloadSound)
+            {
+                audioSource.PlayOneShot(reloadSound, 0.5f);
+                playReloadSound = false;
+            }
+
             shootCooldownTimer += Time.deltaTime;
 
             if (shootCooldownTimer > reloadTime)
             {
                 if (maxAmmo - maxAmmoOnWeapon >= 0)
                 {
-                    shootCooldownTimer = 0.0f;
                     maxAmmo -= maxAmmoOnWeapon;
                     ammo = maxAmmoOnWeapon;
                 }
                 else
                 {
-                    shootCooldownTimer = 0.0f;
                     ammo = maxAmmo;
                     maxAmmo -= maxAmmo;
                 }
+
+                shootCooldownTimer = 0.0f;
+                playReloadSound = true;
             }
         }
     }
 
     public void DoDamage(int p_damage)
     {
+        StartCoroutine(PlayDamageSoundWithDelay());
         health -= p_damage;
 
         if (health <= 0)
@@ -293,5 +352,11 @@ public class MobilePlayerBehaviour : MonoBehaviour
     public void AddAmmo(int p_ammo)
     {
         maxAmmo += p_ammo;
+    }
+
+    private IEnumerator PlayDamageSoundWithDelay()
+    {
+        yield return new WaitForSeconds(0.2f);
+        audioSource.PlayOneShot(damageSounds[Random.Range(0, damageSounds.Length)], 0.5f);
     }
 }

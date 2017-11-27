@@ -6,16 +6,6 @@ public class AmmoCrateBehaviour : MonoBehaviour
 {
     public int ammoAmmount = 0;
 
-    void Start ()
-    {
-		
-	}
-	
-	void Update ()
-    {	
-        
-	}
-
     private void OnTriggerEnter(Collider collider)
     {
         if(collider.CompareTag("Player"))

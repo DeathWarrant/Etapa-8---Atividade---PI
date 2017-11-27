@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 114214838309083498}
   m_Layer: 0
   m_Name: Game Controller
-  m_TagString: Untagged
+  m_TagString: GameController
   m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -67,24 +67,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AIActive: 1
   enemyLimit: 5
-  enemyWaveSize: 6
-  enemyHealthToAdd: 5
-  enemyDamageToAdd: 5
-  enemySpeedToAdd: 2
-  timeToRespawnAmmoCrate: 15
-  player: {fileID: 1420043945429952, guid: e2216ca85f6420447beba4b759ac69eb, type: 2}
-  playerSpawnPoint: {fileID: 0}
-  enemyToSpawn: {fileID: 1555218618299574, guid: f5b6224e2bc883349aaf69bc9fc02d32,
+  enemyWaveSize: 5
+  enemyHealthToAdd: 3
+  enemyDamageToAdd: 3
+  enemySpeedToAdd: 1
+  timeToRespawnAmmoCrate: 30
+  timeToRespawnHealthPack: 30
+  player: {fileID: 0}
+  playerSpawnPoint:
+  - {fileID: 0}
+  - {fileID: 0}
+  enemyToSpawn: {fileID: 1860316013072974, guid: 6ea115e6fca230944a6eb6f3b5a9d01c,
     type: 2}
-  ammoCrates:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  joystickCanvas: {fileID: 1502625798337136, guid: 14f042e8b9be78d4eac1a152c4698fbe,
-    type: 2}
-  menu: {fileID: 1582996315011642, guid: 8e4470ae461a1b64594057a651297c0c, type: 2}
-  playingHUD: {fileID: 1529647520673208, guid: 8e4470ae461a1b64594057a651297c0c, type: 2}
-  endScreen: {fileID: 1759807628404440, guid: 8e4470ae461a1b64594057a651297c0c, type: 2}
+  joystickCanvas: {fileID: 0}
+  menu: {fileID: 0}
+  playingHUD: {fileID: 0}
+  endScreen: {fileID: 0}
   leaderboardNames:
   - {fileID: 0}
   - {fileID: 0}

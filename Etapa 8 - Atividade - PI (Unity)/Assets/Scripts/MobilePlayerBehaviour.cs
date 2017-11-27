@@ -107,6 +107,11 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
     private void DoActions()
     {
+        if (GameControllerBehaviour.gameControllerInstance.GetGameState() == 0 || GameControllerBehaviour.gameControllerInstance.GetGameState() == 2)
+            rigidBody.isKinematic = true;
+        else
+            rigidBody.isKinematic = false;
+
         /*if (leftJoystickInput == Vector3.zero)
         {
             animator.SetBool("isRunning", false);
@@ -137,7 +142,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
             if (lookDirection != Vector3.zero)
             {
-                rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection), rotationSpeed * Time.deltaTime);
+                rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0.0f, 55.0f, 0.0f), rotationSpeed * Time.deltaTime);
             }
             /*if (animator != null)
             {
@@ -164,7 +169,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
             if (lookDirection != Vector3.zero)
             {
-                rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0, 45f, 0), rotationSpeed * Time.deltaTime);
+                rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0.0f, 55.0f, 0.0f), rotationSpeed * Time.deltaTime);
             }
 
             Fire();
@@ -187,7 +192,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
             Vector3 lookDirection = temp - transform.position;
             if (lookDirection != Vector3.zero)
             {
-                rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0, 45f, 0), rotationSpeed * Time.deltaTime);
+                rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0.0f, 55.0f, 0.0f), rotationSpeed * Time.deltaTime);
             }
 
             //animator.SetBool("isAttacking", true);
@@ -294,7 +299,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
                 bulletPoolCounter = 0;
             }
 
-            audioSource.PlayOneShot(weaponSounds[0], 0.15f);
+            audioSource.PlayOneShot(weaponSounds[0], 0.1f);
             bulletPool[bulletPoolCounter].transform.position = bulletSpawn.transform.position;
             bulletPool[bulletPoolCounter].transform.rotation = bulletSpawn.transform.rotation;
             bulletPool[bulletPoolCounter].SetActive(true);
@@ -345,7 +350,6 @@ public class MobilePlayerBehaviour : MonoBehaviour
         {
             health = 0;
             GameControllerBehaviour.gameControllerInstance.ShowEndScreen();
-            gameObject.SetActive(false);
         }
     }
 
@@ -354,9 +358,14 @@ public class MobilePlayerBehaviour : MonoBehaviour
         maxAmmo += p_ammo;
     }
 
+    public void AddHealth(int p_health)
+    {
+        health += p_health;
+    }
+
     private IEnumerator PlayDamageSoundWithDelay()
     {
         yield return new WaitForSeconds(0.2f);
-        audioSource.PlayOneShot(damageSounds[Random.Range(0, damageSounds.Length)], 0.5f);
+        audioSource.PlayOneShot(damageSounds[Random.Range(0, damageSounds.Length)], 0.7f);
     }
 }

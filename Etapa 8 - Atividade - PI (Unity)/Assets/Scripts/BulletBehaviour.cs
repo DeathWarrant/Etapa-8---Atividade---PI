@@ -48,7 +48,6 @@ public class BulletBehaviour : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             collision.gameObject.GetComponent<EnemyBehaviour>().DoDamage(bulletDamage);
-            Debug.Log("Colidiu!");
         }
 
         lifeTimer = 0.0f;

@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Ammo Crate
   - Spawn Point
+  - Health Pack
   layers:
   - Default
   - TransparentFX

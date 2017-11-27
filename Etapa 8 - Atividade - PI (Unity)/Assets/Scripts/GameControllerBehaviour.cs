@@ -22,14 +22,13 @@ public class GameControllerBehaviour : MonoBehaviour
     public float enemySpeedToAdd = 0.0f;
     [Tooltip("Time that will take for ammo crates to respawn after being picked up.")]
     public float timeToRespawnAmmoCrate = 0.0f;
+    public float timeToRespawnHealthPack = 0.0f;
     [Tooltip("Não mexe aqui seu poura, nem nas variáveis de baixo.")]
     public GameObject player = null;
     [Tooltip("Poura, disse para não mexer, por que desceu aqui?")]
-    public GameObject playerSpawnPoint = null;
+    public GameObject[] playerSpawnPoint = null;
     [Tooltip("Ainda descendo né...")]
     public GameObject enemyToSpawn = null;
-    [Tooltip("Vamos ver até onde vai sua curiosidade.")]
-    public GameObject[] ammoCrates;
     [Tooltip("Descendo ainda -.-'")]
     public GameObject joystickCanvas = null;
     [Tooltip("Poura, ta vacilando em...")]
@@ -52,9 +51,13 @@ public class GameControllerBehaviour : MonoBehaviour
     private int wave = 0;
     private int waveCounter = 0;
     private float[] ammoCrateSpawnTimers;
+    private float[] healthPackSpawnTimers;
     private APIClient apiClient = null;
     private GameObject enemySpawnPoint = null;
+    private GameObject[] ammoCrates;
+    private GameObject[] healthPacks;
     private MobilePlayerBehaviour mobilePlayerBehaviour = null;
+    private ParticleSystem enemySpawnParticleSystem = null;
     private Text ammoText = null;
     private Text pointsText = null;
     private Text totalPoints = null;
@@ -91,14 +94,16 @@ public class GameControllerBehaviour : MonoBehaviour
         healthText = playingHUD.transform.Find("Health").GetComponent<Text>();
         totalPoints = endScreen.transform.Find("Background").Find("Background").Find("Total Points").GetComponent<Text>();
         inputField = endScreen.transform.Find("Background").Find("Background").Find("InputField Background").Find("InputField Text").GetComponent<InputField>();
+        player.transform.position = playerSpawnPoint[0].transform.position;
 
         isFirstStart = true;
         menu.SetActive(true);
         joystickCanvas.SetActive(false);
         playingHUD.SetActive(false);
         endScreen.SetActive(false);
-        player.SetActive(false);
+        player.SetActive(true);
         enemySpawnPoint = GameObject.FindGameObjectWithTag("Enemy Spawn Point");
+        enemySpawnParticleSystem = enemySpawnPoint.GetComponent<ParticleSystem>();
         apiClient.GetLeaderboard();
     }
 
@@ -114,22 +119,13 @@ public class GameControllerBehaviour : MonoBehaviour
             Destroy(enemies[i]);
         }
 
-        if (!player.activeInHierarchy)
-        {
-            player.SetActive(false);
-        }
-        else
-        {
-            Debug.Log("Player já ativo.");
-        }
-
         isFirstStart = false;
         menu.SetActive(true);
         joystickCanvas.SetActive(false);
         playingHUD.SetActive(false);
         endScreen.SetActive(false);
-        player.SetActive(false);
         apiClient.GetLeaderboard();
+        player.transform.position = playerSpawnPoint[0].transform.position;
     }
 
     private void StartGameComponents()
@@ -153,11 +149,20 @@ public class GameControllerBehaviour : MonoBehaviour
         playingHUD.SetActive(true);
         endScreen.SetActive(false);
         mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
+        ammoCrates = GameObject.FindGameObjectsWithTag("Ammo Crate");
+        healthPacks = GameObject.FindGameObjectsWithTag("Health Pack");
         ammoCrateSpawnTimers = new float[ammoCrates.Length];
+        healthPackSpawnTimers = new float[healthPacks.Length];
+        player.transform.position = playerSpawnPoint[1].transform.position;
 
         for (int i = 0; i < ammoCrateSpawnTimers.Length; i++)
         {
             ammoCrateSpawnTimers[i] = 0.0f;
+        }
+
+        for(int i = 0; i < healthPacks.Length; i++)
+        {
+            healthPackSpawnTimers[i] = 0.0f;
         }
 
         StartCoroutine(RespawnGameObjects());
@@ -187,19 +192,22 @@ public class GameControllerBehaviour : MonoBehaviour
 
         wave = 0;
         waveCounter = 0;
-        player.transform.position = playerSpawnPoint.transform.position;
-        player.SetActive(true);
+        player.transform.position = playerSpawnPoint[1].transform.position;
         menu.SetActive(false);
         joystickCanvas.SetActive(true);
         playingHUD.SetActive(true);
         endScreen.SetActive(false);
         mobilePlayerBehaviour.RestartVariables();
         playerPoints = 0;
-        ammoCrateSpawnTimers = new float[ammoCrates.Length];
 
         for (int i = 0; i < ammoCrateSpawnTimers.Length; i++)
         {
             ammoCrateSpawnTimers[i] = 0.0f;
+        }
+
+        for (int i = 0; i < healthPacks.Length; i++)
+        {
+            healthPackSpawnTimers[i] = 0.0f;
         }
 
         StartCoroutine(RespawnGameObjects());
@@ -217,19 +225,10 @@ public class GameControllerBehaviour : MonoBehaviour
             {
                 if (enemyCounter < enemyLimit)
                 {
-                    Vector3 positionVec = new Vector3(Random.Range(-30.0f, 30.0f), 1, Random.Range(-30.0f, 30.0f));
+                    Vector3 positionVec = new Vector3(Random.Range(-30.0f, 30.0f), 0, Random.Range(-30.0f, 30.0f));
                     enemySpawnPoint.transform.position = positionVec;
-
-                    if (wave == 0)
-                    {
-                        Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
-                    }
-                    else
-                    {
-                        GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
-                        enemy.GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd * wave, enemyDamageToAdd * wave, enemySpeedToAdd * wave);
-                    }
-
+                    enemySpawnParticleSystem.Play();
+                    StartCoroutine(SpawnEnemyWithDelay());
                     enemyCounter++;
                 }
             }
@@ -248,7 +247,33 @@ public class GameControllerBehaviour : MonoBehaviour
                 }
             }
 
+            for(int i = 0; i < healthPacks.Length; i++)
+            {
+                if(!healthPacks[i].activeInHierarchy)
+                {
+                    healthPackSpawnTimers[i] += 2.0f;
+
+                    if(healthPackSpawnTimers[i] > timeToRespawnHealthPack)
+                    {
+                        healthPackSpawnTimers[i] = 0.0f;
+                        healthPacks[i].SetActive(true);
+                    }
+                }
+            }
+
             yield return new WaitForSeconds(2.0f);
+        }
+    }
+
+    private IEnumerator SpawnEnemyWithDelay()
+    {
+        yield return new WaitForSeconds(1.0f);
+
+        GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
+
+        if (wave > 0)
+        {
+            enemy.GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd * wave, enemyDamageToAdd * wave, enemySpeedToAdd * wave);
         }
     }
 
@@ -283,6 +308,8 @@ public class GameControllerBehaviour : MonoBehaviour
 
     private void UpdateStuff()
     {
+
+
         if (gameState == States.Gaming)
         {
             ammoText.text = "Ammo: " + mobilePlayerBehaviour.GetAmmo() + "\nMax Ammo: " + mobilePlayerBehaviour.GetMaxAmmo();
@@ -318,6 +345,7 @@ public class GameControllerBehaviour : MonoBehaviour
     public void ShowEndScreen()
     {
         gameState = States.Dead;
+        player.transform.position = playerSpawnPoint[0].transform.position;
         menu.SetActive(false);
         joystickCanvas.SetActive(false);
         playingHUD.SetActive(false);

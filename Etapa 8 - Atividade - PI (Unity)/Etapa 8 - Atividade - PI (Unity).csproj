@@ -240,6 +240,7 @@
     <Compile Include="Assets\Scripts\API Client\Player.cs" />
     <Compile Include="Assets\Scripts\BulletBehaviour.cs" />
     <Compile Include="Assets\Scripts\CameraBehaviour.cs" />
+    <Compile Include="Assets\Scripts\DamageParticleBehaviour.cs" />
     <Compile Include="Assets\Scripts\DualJoystickTouchContoller.cs" />
     <Compile Include="Assets\Scripts\EnemyBehaviour.cs" />
     <Compile Include="Assets\Scripts\GameControllerBehaviour.cs" />
@@ -247,6 +248,9 @@
     <Compile Include="Assets\Scripts\LeftJoystick.cs" />
     <Compile Include="Assets\Scripts\MobilePlayerBehaviour.cs" />
     <Compile Include="Assets\Scripts\RightJoystick.cs" />
+    <Compile Include="Assets\Scripts\ShotgunShotBehaviour.cs" />
+    <Compile Include="Assets\Scripts\ShotgunShotBehaviour2.cs" />
+    <Compile Include="Assets\Scripts\SpecialWeaponCrateBehaviour.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

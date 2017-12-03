@@ -70,9 +70,10 @@ MonoBehaviour:
   enemyWaveSize: 5
   enemyHealthToAdd: 3
   enemyDamageToAdd: 3
-  enemySpeedToAdd: 1
+  enemySpeedToAdd: 0.5
   timeToRespawnAmmoCrate: 30
   timeToRespawnHealthPack: 30
+  timeToRespawnSpecialWeaponCrate: 30
   player: {fileID: 0}
   playerSpawnPoint:
   - {fileID: 0}

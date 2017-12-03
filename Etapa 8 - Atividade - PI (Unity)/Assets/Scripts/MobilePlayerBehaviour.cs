@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -7,38 +8,47 @@ public class MobilePlayerBehaviour : MonoBehaviour
 {
     public int health = 0;
     public int rotationSpeed = 0;
-    public int maxAmmoOnWeapon = 0;
+    public int maxAmmoOnNormalWeapon = 0;
     public int maxCarryingAmmo = 0;
     public float moveSpeed = 0.0f;
     public float shootCooldown = 0.0f;
+    public float shotgunShootCooldown = 0.0f;
     public float reloadTime = 0.0f;
     public float walkCooldownTime = 0.0f;
     public AudioClip[] damageSounds;
     public AudioClip[] walkSounds;
     public AudioClip[] weaponSounds;
     public AudioClip reloadSound = null;
+    public GameObject bulletPrefabShotgun = null;
     public GameObject bulletPrefab = null;
     public GameObject bulletSpawn = null;
+    public GameObject rifle;
+    public GameObject shotgun;
     public LeftJoystick leftJoystick = null;
     public RightJoystick rightJoystick = null;
     public Transform rotationTarget = null;
     //public Animator animator = null;
 
+    private enum Weapon { NormalWeapon, Shotgun }
+    private Weapon playerWeapon = 0;
+    private bool isDead = false;
     private bool isShootOnCooldown = false;
     private bool isWalkOnCooldown = false;
     private bool isRightStep = true;
     private bool playReloadSound = true;
-    private int ammo = 0;
-    private int bulletPoolCounter = 0;
-    private int maxAmmo = 0;
+    private int[] ammo = null;
+    private int[] bulletPoolCounter = new int[2];
+    private int[] maxAmmo = null;
     private float shootCooldownTimer = 0.0f;
     private float walkCooldownTimer = 0.0f;
     private float leftJoystickX = 0.0f;
     private float leftJoystickY = 0.0f;
     private float rightJoystickX = 0.0f;
-    private float rightJoytsickY = 0.0f;
+    private float rightJoystickY = 0.0f;
+    private Animator animator = null;
     private AudioSource audioSource = null;
     private GameObject[] bulletPool = new GameObject[10];
+    private GameObject[] bulletPoolShotgun = new GameObject[3];
     private Rigidbody rigidBody = null;
     private Vector3 leftJoystickInput = Vector3.zero;
     private Vector3 rightJoystickInput = Vector3.zero;
@@ -56,16 +66,33 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
     private void StartComponents()
     {
-        maxAmmo = maxCarryingAmmo;
-        ammo = maxAmmoOnWeapon;
-        bulletPoolCounter = 0;
+        isDead = false;
+        maxAmmo = new int[] { maxCarryingAmmo, 0 };
+        ammo = new int[] { maxAmmoOnNormalWeapon, 0 };
+        bulletPoolCounter = new int[2];
+        bulletPool = new GameObject[10];
+        bulletPoolShotgun = new GameObject[3];
+        shotgun.SetActive(false);
+        rifle.SetActive(true);
 
         audioSource = GetComponent<AudioSource>();
+        animator = GetComponentInChildren<Animator>();
+
+        for(int i = 0; i < bulletPoolCounter.Length; i++)
+        {
+            bulletPoolCounter[i] = 0;
+        }
 
         for (int i = 0; i < bulletPool.Length; i++)
         {
             bulletPool[i] = Instantiate(bulletPrefab, bulletSpawn.transform.position, bulletSpawn.transform.rotation);
             bulletPool[i].SetActive(false);
+        }
+
+        for (int i = 0; i < bulletPoolShotgun.Length; i++)
+        {
+            bulletPoolShotgun[i] = Instantiate(bulletPrefabShotgun, bulletSpawn.transform.position, bulletSpawn.transform.rotation);
+            bulletPoolShotgun[i].SetActive(false);
         }
 
         if (transform.GetComponent<Rigidbody>() == null)
@@ -95,14 +122,30 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
     private void GetInputs()
     {
-        leftJoystickInput = leftJoystick.GetInputDirection();
-        rightJoystickInput = rightJoystick.GetInputDirection();
+        if (!isDead)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                ChangeWeapon(1, 100);
+            }
 
-        leftJoystickX = leftJoystickInput.x;
-        leftJoystickY = leftJoystickInput.y;
+            leftJoystickInput = leftJoystick.GetInputDirection();
+            rightJoystickInput = rightJoystick.GetInputDirection();
 
-        rightJoystickX = rightJoystickInput.x;
-        rightJoytsickY = rightJoystickInput.y;
+            leftJoystickX = leftJoystickInput.x;
+            leftJoystickY = leftJoystickInput.y;
+
+            rightJoystickX = rightJoystickInput.x;
+            rightJoystickY = rightJoystickInput.y;
+        }
+        else
+        {
+            leftJoystickX = 0.0f;
+            leftJoystickY = 0.0f;
+
+            rightJoystickX = 0.0f;
+            rightJoystickY = 0.0f;
+        }
     }
 
     private void DoActions()
@@ -112,15 +155,45 @@ public class MobilePlayerBehaviour : MonoBehaviour
         else
             rigidBody.isKinematic = false;
 
-        /*if (leftJoystickInput == Vector3.zero)
+        if (rightJoystickX == 0.0f && rightJoystickY == 0.0f)
         {
-            animator.SetBool("isRunning", false);
+            if (leftJoystickX != 0.0f && leftJoystickY != 0.0f)
+            {
+                float tempX = leftJoystickX < 0.0f ? leftJoystickX * -1 : leftJoystickX;
+                float tempY = leftJoystickY < 0.0f ? leftJoystickY * -1 : leftJoystickY;
+                float temp = tempX + tempY;
+                animator.SetFloat("VelocityZ", temp);
+            }
+            else if (leftJoystickX != 0.0f && leftJoystickY == 0.0f)
+            {
+                float tempX = leftJoystickX < 0.0f ? leftJoystickX * -1 : leftJoystickX;
+                animator.SetFloat("VelocityZ", tempX);
+            }
+            else if (leftJoystickX == 0.0f && leftJoystickY != 0.0f)
+            {
+                float tempY = leftJoystickY < 0.0f ? leftJoystickY * -1 : leftJoystickY;
+                animator.SetFloat("VelocityZ", tempY);
+            }
+            else
+            {
+                animator.SetFloat("VelocityZ", leftJoystickY);
+                animator.SetFloat("VelocityX", leftJoystickY);
+            }
         }
-
-        if (rightJoystickInput == Vector3.zero)
+        else if (rightJoystickX != 0.0f && rightJoystickY == 0.0f || rightJoystickX == 0.0f && rightJoystickY != 0.0f || rightJoystickX != 0.0f && rightJoystickY != 0.0f)
         {
-            animator.SetBool("isAttacking", false);
-        }*/
+            if (leftJoystickX != 0.0f && leftJoystickY != 0.0f)
+            {
+                float angleBetween = Mathf.Atan2(rightJoystickY, rightJoystickX) - Mathf.Atan2(leftJoystickY, leftJoystickX);
+                animator.SetFloat("VelocityX", Mathf.Sin(angleBetween));
+                animator.SetFloat("VelocityZ", Mathf.Cos(angleBetween));
+            }
+            else
+            {
+                animator.SetFloat("VelocityZ", leftJoystickY);
+                animator.SetFloat("VelocityX", leftJoystickY);
+            }
+        }
 
         // LEFT JOYSTICK INPUT ONLY
         if (leftJoystickInput != Vector3.zero && rightJoystickInput == Vector3.zero)
@@ -144,10 +217,6 @@ public class MobilePlayerBehaviour : MonoBehaviour
             {
                 rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0.0f, 55.0f, 0.0f), rotationSpeed * Time.deltaTime);
             }
-            /*if (animator != null)
-            {
-                animator.SetBool("isRunning", true);
-            }*/
 
             // move the player
             rigidBody.transform.Translate(leftJoystickInput * Time.fixedDeltaTime);
@@ -157,14 +226,14 @@ public class MobilePlayerBehaviour : MonoBehaviour
         if (leftJoystickInput == Vector3.zero && rightJoystickInput != Vector3.zero)
         {
             // calculate the player's direction based on angle
-            float tempAngle = Mathf.Atan2(rightJoytsickY, rightJoystickX);
+            float tempAngle = Mathf.Atan2(rightJoystickY, rightJoystickX);
             rightJoystickX *= Mathf.Abs(Mathf.Cos(tempAngle));
-            rightJoytsickY *= Mathf.Abs(Mathf.Sin(tempAngle));
+            rightJoystickY *= Mathf.Abs(Mathf.Sin(tempAngle));
 
             // rotate the player to face the direction of input
             Vector3 temp = transform.position;
             temp.x += rightJoystickX;
-            temp.z += rightJoytsickY;
+            temp.z += rightJoystickY;
             Vector3 lookDirection = temp - transform.position;
 
             if (lookDirection != Vector3.zero)
@@ -173,29 +242,26 @@ public class MobilePlayerBehaviour : MonoBehaviour
             }
 
             Fire();
-
-            //animator.SetBool("isAttacking", true);
         }
 
         // INPUT FROM BOTH JOYSTICKS
         if (leftJoystickInput != Vector3.zero && rightJoystickInput != Vector3.zero)
         {
             // calculate the player's direction based on angle
-            float tempAngleInputRightJoystick = Mathf.Atan2(rightJoytsickY, rightJoystickX);
+            float tempAngleInputRightJoystick = Mathf.Atan2(rightJoystickY, rightJoystickX);
             rightJoystickX *= Mathf.Abs(Mathf.Cos(tempAngleInputRightJoystick));
-            rightJoytsickY *= Mathf.Abs(Mathf.Sin(tempAngleInputRightJoystick));
+            rightJoystickY *= Mathf.Abs(Mathf.Sin(tempAngleInputRightJoystick));
 
             // rotate the player to face the direction of input
             Vector3 temp = transform.position;
             temp.x += rightJoystickX;
-            temp.z += rightJoytsickY;
+            temp.z += rightJoystickY;
             Vector3 lookDirection = temp - transform.position;
+
             if (lookDirection != Vector3.zero)
             {
                 rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0.0f, 55.0f, 0.0f), rotationSpeed * Time.deltaTime);
             }
-
-            //animator.SetBool("isAttacking", true);
 
             // calculate the player's direction based on angle
             float tempAngleLeftJoystick = Mathf.Atan2(leftJoystickY, leftJoystickX);
@@ -206,17 +272,12 @@ public class MobilePlayerBehaviour : MonoBehaviour
             leftJoystickInput = transform.TransformDirection(leftJoystickInput);
             leftJoystickInput *= moveSpeed;
 
-            /*if (animator != null)
-            {
-                animator.SetBool("isRunning", true);
-            }*/
-
             rigidBody.transform.Translate(leftJoystickInput * Time.fixedDeltaTime);
 
             Fire();
         }
 
-        if(leftJoystickX != 0.0f || leftJoystickY != 0.0f)
+        if (leftJoystickX != 0.0f || leftJoystickY != 0.0f)
         {
             WalkSound();
         }
@@ -225,10 +286,21 @@ public class MobilePlayerBehaviour : MonoBehaviour
         {
             shootCooldownTimer += Time.deltaTime;
 
-            if (shootCooldownTimer > shootCooldown)
+            if (playerWeapon == Weapon.NormalWeapon)
             {
-                shootCooldownTimer = 0.0f;
-                isShootOnCooldown = false;
+                if (shootCooldownTimer > shootCooldown)
+                {
+                    shootCooldownTimer = 0.0f;
+                    isShootOnCooldown = false;
+                }
+            }
+            else
+            {
+                if (shootCooldownTimer > shotgunShootCooldown)
+                {
+                    shootCooldownTimer = 0.0f;
+                    isShootOnCooldown = false;
+                }
             }
         }
 
@@ -248,12 +320,12 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
     public int GetAmmo()
     {
-        return ammo;
+        return ammo[(int)playerWeapon];
     }
 
     public int GetMaxAmmo()
     {
-        return maxAmmo;
+        return maxAmmo[(int)playerWeapon];
     }
 
     public int GetHealth()
@@ -263,16 +335,21 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
     public void RestartVariables()
     {
+        isDead = false;
+        animator.SetBool("Dead", isDead);
         health = 100;
-        maxAmmo = maxCarryingAmmo;
-        ammo = maxAmmoOnWeapon;
+
+        ammo = new int[] { maxAmmoOnNormalWeapon, 0 };
+        maxAmmo = new int[] { maxCarryingAmmo, 0 };
+
         rigidBody.velocity = Vector3.zero;
         rigidBody.angularVelocity = Vector3.zero;
+        rotationTarget.transform.localPosition = Vector3.zero;
     }
 
     private void WalkSound()
     {
-        if(!isWalkOnCooldown)
+        if (!isWalkOnCooldown)
         {
             if (isRightStep)
             {
@@ -287,56 +364,89 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
             isWalkOnCooldown = true;
         }
-
     }
 
     private void Fire()
     {
-        if (!isShootOnCooldown && ammo > 0)
+        if (playerWeapon == Weapon.NormalWeapon)
         {
-            if (bulletPoolCounter >= bulletPool.Length)
+            if (!isShootOnCooldown && ammo[(int)playerWeapon] > 0)
             {
-                bulletPoolCounter = 0;
+                if (bulletPoolCounter[(int)playerWeapon] >= bulletPool.Length)
+                {
+                    bulletPoolCounter[(int)playerWeapon] = 0;
+                }
+
+                audioSource.PlayOneShot(weaponSounds[(int)playerWeapon], 0.3f);
+                bulletPool[bulletPoolCounter[(int)playerWeapon]].transform.position = bulletSpawn.transform.position;
+                bulletPool[bulletPoolCounter[(int)playerWeapon]].transform.rotation = bulletSpawn.transform.rotation;
+                bulletPool[bulletPoolCounter[(int)playerWeapon]].SetActive(true);
+                bulletPoolCounter[(int)playerWeapon]++;
+                ammo[(int)playerWeapon]--;
+
+                isShootOnCooldown = true;
             }
+        }
+        else
+        {
+            if (!isShootOnCooldown && ammo[(int)playerWeapon] > 0)
+            {
+                if (bulletPoolCounter[(int)playerWeapon] >= bulletPoolShotgun.Length)
+                {
+                    bulletPoolCounter[(int)playerWeapon] = 0;
+                }
 
-            audioSource.PlayOneShot(weaponSounds[0], 0.1f);
-            bulletPool[bulletPoolCounter].transform.position = bulletSpawn.transform.position;
-            bulletPool[bulletPoolCounter].transform.rotation = bulletSpawn.transform.rotation;
-            bulletPool[bulletPoolCounter].SetActive(true);
-            bulletPoolCounter++;
-            ammo--;
+                audioSource.PlayOneShot(weaponSounds[(int)playerWeapon], 0.3f);
+                bulletPoolShotgun[bulletPoolCounter[(int)playerWeapon]].transform.position = bulletSpawn.transform.position;
+                bulletPoolShotgun[bulletPoolCounter[(int)playerWeapon]].transform.rotation = bulletSpawn.transform.rotation;
+                bulletPoolShotgun[bulletPoolCounter[(int)playerWeapon]].SetActive(true);
+                bulletPoolCounter[(int)playerWeapon]++;
+                ammo[(int)playerWeapon]--;
 
-            isShootOnCooldown = true;
+                isShootOnCooldown = true;
+            }
         }
     }
 
     private void Reload()
     {
-        if (!isShootOnCooldown && ammo <= 0 && maxAmmo > 0)
+        if (playerWeapon == Weapon.NormalWeapon)
         {
-            if(playReloadSound)
+            if (!isShootOnCooldown && ammo[(int)playerWeapon] <= 0 && maxAmmo[(int)playerWeapon] > 0)
             {
-                audioSource.PlayOneShot(reloadSound, 0.5f);
-                playReloadSound = false;
+                if (playReloadSound)
+                {
+                    audioSource.PlayOneShot(reloadSound, 0.5f);
+                    playReloadSound = false;
+                }
+
+                shootCooldownTimer += Time.deltaTime;
+
+                if (shootCooldownTimer > reloadTime)
+                {
+                    if (maxAmmo[(int)playerWeapon] - maxAmmoOnNormalWeapon >= 0)
+                    {
+                        maxAmmo[(int)playerWeapon] -= maxAmmoOnNormalWeapon;
+                        ammo[(int)playerWeapon] = maxAmmoOnNormalWeapon;
+                    }
+                    else
+                    {
+                        ammo[(int)playerWeapon] = maxAmmo[(int)playerWeapon];
+                        maxAmmo[(int)playerWeapon] -= maxAmmo[(int)playerWeapon];
+                    }
+
+                    shootCooldownTimer = 0.0f;
+                    playReloadSound = true;
+                }
             }
-
-            shootCooldownTimer += Time.deltaTime;
-
-            if (shootCooldownTimer > reloadTime)
+        }
+        else
+        {
+            if (ammo[(int)playerWeapon] <= 0)
             {
-                if (maxAmmo - maxAmmoOnWeapon >= 0)
-                {
-                    maxAmmo -= maxAmmoOnWeapon;
-                    ammo = maxAmmoOnWeapon;
-                }
-                else
-                {
-                    ammo = maxAmmo;
-                    maxAmmo -= maxAmmo;
-                }
-
-                shootCooldownTimer = 0.0f;
-                playReloadSound = true;
+                shotgun.SetActive(false);
+                rifle.SetActive(true);
+                playerWeapon = Weapon.NormalWeapon;
             }
         }
     }
@@ -349,18 +459,31 @@ public class MobilePlayerBehaviour : MonoBehaviour
         if (health <= 0)
         {
             health = 0;
+            isDead = true;
+            animator.SetBool("Dead", isDead);
             GameControllerBehaviour.gameControllerInstance.ShowEndScreen();
         }
     }
 
     public void AddAmmo(int p_ammo)
     {
-        maxAmmo += p_ammo;
+        maxAmmo[0] += p_ammo;
     }
 
     public void AddHealth(int p_health)
     {
         health += p_health;
+    }
+
+    public void ChangeWeapon(int p_weaponID, int p_specialAmmo)
+    {
+        if (p_weaponID == 1)
+        {
+            playerWeapon = Weapon.Shotgun;
+            ammo[p_weaponID] = p_specialAmmo;
+            rifle.SetActive(false);
+            shotgun.SetActive(true);
+        }
     }
 
     private IEnumerator PlayDamageSoundWithDelay()

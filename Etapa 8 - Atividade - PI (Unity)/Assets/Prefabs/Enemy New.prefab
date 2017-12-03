@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33015433013964372}
   - component: {fileID: 23513352934853624}
   m_Layer: 0
-  m_Name: 'olho '
+  m_Name: Olho
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -39,7 +39,7 @@ GameObject:
   - component: {fileID: 33901379889292868}
   - component: {fileID: 23567801909075942}
   m_Layer: 0
-  m_Name: cabeca
+  m_Name: "Cabe\xE7a"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56,7 +56,7 @@ GameObject:
   - component: {fileID: 33751257845128616}
   - component: {fileID: 23576305978685654}
   m_Layer: 0
-  m_Name: dentes
+  m_Name: Dentes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -377,21 +377,27 @@ MonoBehaviour:
   baseHealth: 3
   pointsForKilling: 10
   baseDamage: 3
-  baseEnemySpeed: 3
+  baseEnemySpeed: 2
   attackCooldown: 1
-  distanceToCauseDamage: 2
+  distanceToCauseDamage: 2.5
   walkCooldownTime: 0.3
-  attackSound: {fileID: 8300000, guid: 5183551b27352484ea94c82ed00e7d23, type: 3}
+  damageParticle: {fileID: 1330445593412698, guid: 7fcc13368bb428840a43f9cc6c6200be,
+    type: 2}
+  attackSound: {fileID: 8300000, guid: bb03a66dba974824ca5dce01551a055f, type: 3}
   walkSounds:
   - {fileID: 8300000, guid: 2190e9bb913a2894ab9865ebcd482a12, type: 3}
   - {fileID: 8300000, guid: c5cfe53761749274088adebb63ae2412, type: 3}
   randomSounds:
-  - {fileID: 8300000, guid: c94e0be8421e250498ea96d51fd02552, type: 3}
-  - {fileID: 8300000, guid: 861d1d57a36067d45b62e02329007a31, type: 3}
-  - {fileID: 8300000, guid: 93de689831b00f34bbe6c090d6f2ce97, type: 3}
-  - {fileID: 8300000, guid: 5f1835a33f99406448e2228f41b1744b, type: 3}
-  - {fileID: 8300000, guid: 9cfafb46159dec24eb6cf68534955896, type: 3}
-  - {fileID: 8300000, guid: fbdbb3171d882974fbaa3cba5aa59a02, type: 3}
+  - {fileID: 0}
+  - {fileID: 8300000, guid: 28447de2c4a260946a1d53a0464bb205, type: 3}
+  - {fileID: 8300000, guid: 2e52c0e57ed1b814fab27f0799c90f73, type: 3}
+  - {fileID: 8300000, guid: 8539923ceb050294cb0fa6deb52e138a, type: 3}
+  - {fileID: 8300000, guid: 38f72e4db0c7d6845a3b3ac60f8b5b82, type: 3}
+  - {fileID: 8300000, guid: 7713cebfe21996c4aa0f183395c49072, type: 3}
+  - {fileID: 8300000, guid: 79a1783f812cd1242a1aee70a43cd90c, type: 3}
+  - {fileID: 8300000, guid: 139902a5488b3dd46b91348a4d0e34dd, type: 3}
+  - {fileID: 8300000, guid: e23582c6c2a32db49b7586ad71e553fc, type: 3}
+  - {fileID: 8300000, guid: 9bee0e6c504e6194f8529639f845436e, type: 3}
 --- !u!136 &136118072861956578
 CapsuleCollider:
   m_ObjectHideFlags: 1
@@ -418,7 +424,7 @@ NavMeshAgent:
   m_Acceleration: 500
   avoidancePriority: 50
   m_AngularSpeed: 500
-  m_StoppingDistance: 0.7
+  m_StoppingDistance: 1.9
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1

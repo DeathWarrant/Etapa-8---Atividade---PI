@@ -27,11 +27,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FrontTex:
-        m_Texture: {fileID: 2800000, guid: db891bbb0f035a340a64f1550499d24b, type: 3}
+        m_Texture: {fileID: 2800000, guid: cb3da35c2c732e44cbbafcc11c3c0465, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _LeftTex:
-        m_Texture: {fileID: 2800000, guid: 1ded1ac4a932ce548b131efe140dee3d, type: 3}
+        m_Texture: {fileID: 2800000, guid: d45fc91dd6880aa409968950d9f35667, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:

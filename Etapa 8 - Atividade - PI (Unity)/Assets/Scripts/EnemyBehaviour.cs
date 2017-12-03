@@ -19,6 +19,7 @@ public class EnemyBehaviour : MonoBehaviour
     [Tooltip("Enemy's attack range.")]
     public float distanceToCauseDamage = 0.0f;
     public float walkCooldownTime = 0.0f;
+    public GameObject damageParticle = null;
     public AudioClip attackSound = null;
     public AudioClip[] walkSounds = null;
     public AudioClip[] randomSounds = null;
@@ -71,9 +72,20 @@ public class EnemyBehaviour : MonoBehaviour
         StartCoroutine(SetDestination());
     }
 
+    private void RestartComponents()
+    {
+        afkTimer = 0.0f;
+        isOnAFKTime = true;
+        randomSoundNumber = 0;
+        randomSoundTempNumber = -1;
+        randomTimeDecided = false;
+
+        StartCoroutine(SetDestination());
+    }
+
     private void UpdateStuff()
     {
-        if (afkTimer > 1.5f)
+        if (afkTimer > 1.0f)
         {
             if(isOnAFKTime)
             {
@@ -107,7 +119,7 @@ public class EnemyBehaviour : MonoBehaviour
                     randomSoundTimer = 0.0f;
                     audioSource.PlayOneShot(randomSounds[randomSoundNumber], 0.3f);
                     randomSoundTempNumber = randomSoundNumber;
-                    Debug.Log(randomSoundNumber);
+                    //Debug.Log(randomSoundNumber);
                     randomTimeDecided = false;
                 }
             }
@@ -204,13 +216,14 @@ public class EnemyBehaviour : MonoBehaviour
     public void DoDamage(int p_damage)
     {
         baseHealth -= p_damage;
+        Instantiate(damageParticle, transform.position, transform.rotation);
 
         if (baseHealth <= 0)
         {
             baseHealth = 0;
             GameControllerBehaviour.gameControllerInstance.AddPoints(pointsForKilling);
             GameControllerBehaviour.gameControllerInstance.DecreaseEnemyCounter();
-            Destroy(gameObject);
+            gameObject.SetActive(false);
         }
     }
 
@@ -219,5 +232,10 @@ public class EnemyBehaviour : MonoBehaviour
         baseHealth += p_health;
         baseDamage += p_damage;
         baseEnemySpeed += p_speed;
+    }
+
+    public void RestartAI()
+    {
+        RestartComponents();
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,7 +22,10 @@ public class GameControllerBehaviour : MonoBehaviour
     public float enemySpeedToAdd = 0.0f;
     [Tooltip("Time that will take for ammo crates to respawn after being picked up.")]
     public float timeToRespawnAmmoCrate = 0.0f;
+    [Tooltip("Time that will take for health packs to respawn after being picked up.")]
     public float timeToRespawnHealthPack = 0.0f;
+    [Tooltip("Time that will take for special weapon crates to respawn after being picked up.")]
+    public float timeToRespawnSpecialWeaponCrate = 0.0f;
     [Tooltip("Não mexe aqui seu poura, nem nas variáveis de baixo.")]
     public GameObject player = null;
     [Tooltip("Poura, disse para não mexer, por que desceu aqui?")]
@@ -50,12 +53,16 @@ public class GameControllerBehaviour : MonoBehaviour
     private int arrayCapacity = 0;
     private int wave = 0;
     private int waveCounter = 0;
-    private float[] ammoCrateSpawnTimers;
-    private float[] healthPackSpawnTimers;
+    private int enemySpawnerController = 0;
+    private float[] ammoCrateSpawnTimers = null;
+    private float[] healthPackSpawnTimers = null;
+    private float[] specialWeaponCrateSpawnTimers = null;
     private APIClient apiClient = null;
     private GameObject enemySpawnPoint = null;
     private GameObject[] ammoCrates;
     private GameObject[] healthPacks;
+    private GameObject[] specialWeaponCrates;
+    private List<GameObject> enemiesList = new List<GameObject>(0);
     private MobilePlayerBehaviour mobilePlayerBehaviour = null;
     private ParticleSystem enemySpawnParticleSystem = null;
     private Text ammoText = null;
@@ -72,6 +79,7 @@ public class GameControllerBehaviour : MonoBehaviour
     private void Update()
     {
         UpdateStuff();
+        Debug.Log("Enemy List: " +enemiesList.Count);
     }
 
     private void StartComponents()
@@ -82,6 +90,7 @@ public class GameControllerBehaviour : MonoBehaviour
         }
         else
         {
+            Destroy(this);
             Debug.Log("GameController já apresenta uma instância.");
         }
 
@@ -89,6 +98,7 @@ public class GameControllerBehaviour : MonoBehaviour
         StartCoroutine(UpdateMenu());
         gameState = States.Menu;
 
+        mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
         ammoText = playingHUD.transform.Find("Ammo").GetComponent<Text>();
         pointsText = playingHUD.transform.Find("Points").GetComponent<Text>();
         healthText = playingHUD.transform.Find("Health").GetComponent<Text>();
@@ -110,7 +120,6 @@ public class GameControllerBehaviour : MonoBehaviour
     private void RestartMenu()
     {
         gameState = States.Menu;
-
         GameObject[] enemies = new GameObject[enemyLimit];
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
 
@@ -118,6 +127,8 @@ public class GameControllerBehaviour : MonoBehaviour
         {
             Destroy(enemies[i]);
         }
+
+        enemiesList.Clear();
 
         isFirstStart = false;
         menu.SetActive(true);
@@ -141,6 +152,7 @@ public class GameControllerBehaviour : MonoBehaviour
 
         wave = 0;
         waveCounter = 0;
+        enemySpawnerController = 0;
         gameState = States.Gaming;
         enemyCounter = 0;
         playerPoints = 0;
@@ -148,11 +160,12 @@ public class GameControllerBehaviour : MonoBehaviour
         joystickCanvas.SetActive(true);
         playingHUD.SetActive(true);
         endScreen.SetActive(false);
-        mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
         ammoCrates = GameObject.FindGameObjectsWithTag("Ammo Crate");
         healthPacks = GameObject.FindGameObjectsWithTag("Health Pack");
+        specialWeaponCrates = GameObject.FindGameObjectsWithTag("Special Weapon Crate");
         ammoCrateSpawnTimers = new float[ammoCrates.Length];
         healthPackSpawnTimers = new float[healthPacks.Length];
+        specialWeaponCrateSpawnTimers = new float[specialWeaponCrates.Length];
         player.transform.position = playerSpawnPoint[1].transform.position;
 
         for (int i = 0; i < ammoCrateSpawnTimers.Length; i++)
@@ -165,19 +178,17 @@ public class GameControllerBehaviour : MonoBehaviour
             healthPackSpawnTimers[i] = 0.0f;
         }
 
+        for(int i = 0; i < specialWeaponCrates.Length; i++)
+        {
+            specialWeaponCrateSpawnTimers[i] = 0.0f;
+        }
+
         StartCoroutine(RespawnGameObjects());
     }
 
     private void RestartGameComponents()
     {
         gameState = States.Gaming;
-        GameObject[] enemies = new GameObject[enemyLimit];
-        enemies = GameObject.FindGameObjectsWithTag("Enemy");
-
-        for (int i = 0; i < enemies.Length; i++)
-        {
-            Destroy(enemies[i]);
-        }
 
         if (!player.activeInHierarchy)
         {
@@ -189,15 +200,16 @@ public class GameControllerBehaviour : MonoBehaviour
         }
 
         enemyCounter = 0;
+        mobilePlayerBehaviour.RestartVariables();
 
         wave = 0;
         waveCounter = 0;
+        enemySpawnerController = 0;
         player.transform.position = playerSpawnPoint[1].transform.position;
         menu.SetActive(false);
         joystickCanvas.SetActive(true);
         playingHUD.SetActive(true);
         endScreen.SetActive(false);
-        mobilePlayerBehaviour.RestartVariables();
         playerPoints = 0;
 
         for (int i = 0; i < ammoCrateSpawnTimers.Length; i++)
@@ -208,6 +220,11 @@ public class GameControllerBehaviour : MonoBehaviour
         for (int i = 0; i < healthPacks.Length; i++)
         {
             healthPackSpawnTimers[i] = 0.0f;
+        }
+
+        for (int i = 0; i < specialWeaponCrates.Length; i++)
+        {
+            specialWeaponCrateSpawnTimers[i] = 0.0f;
         }
 
         StartCoroutine(RespawnGameObjects());
@@ -261,6 +278,20 @@ public class GameControllerBehaviour : MonoBehaviour
                 }
             }
 
+            for(int i = 0; i < specialWeaponCrates.Length; i++)
+            {
+                if(!specialWeaponCrates[i].activeInHierarchy)
+                {
+                    specialWeaponCrateSpawnTimers[i] += 2.0f;
+
+                    if(specialWeaponCrateSpawnTimers[i] > timeToRespawnSpecialWeaponCrate)
+                    {
+                        specialWeaponCrateSpawnTimers[i] = 0.0f;
+                        specialWeaponCrates[i].SetActive(true);
+                    }
+                }
+            }
+
             yield return new WaitForSeconds(2.0f);
         }
     }
@@ -269,11 +300,37 @@ public class GameControllerBehaviour : MonoBehaviour
     {
         yield return new WaitForSeconds(1.0f);
 
-        GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
-
-        if (wave > 0)
+        if (enemiesList.Count < 5 && enemySpawnerController < 5)
         {
-            enemy.GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd * wave, enemyDamageToAdd * wave, enemySpeedToAdd * wave);
+            GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
+            enemiesList.Add(enemy);
+
+            if (wave > 0)
+            {
+                enemy.GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd * wave, enemyDamageToAdd * wave, enemySpeedToAdd * wave);
+            }
+
+            enemySpawnerController++;
+        }
+        else
+        {
+            for (int i = 0; i < enemiesList.Count; i++)
+            {
+                if(!enemiesList[i].activeInHierarchy)
+                {
+                    enemiesList[i].transform.position = enemySpawnPoint.transform.position;
+                    enemiesList[i].transform.rotation = enemySpawnPoint.transform.rotation;
+
+                    if (wave > 0)
+                    {
+                        enemiesList[i].GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd * wave, enemyDamageToAdd * wave, enemySpeedToAdd * wave);
+                    }
+
+                    enemiesList[i].SetActive(true);
+                    enemiesList[i].GetComponent<EnemyBehaviour>().RestartAI();
+                    break;
+                }
+            }
         }
     }
 
@@ -285,7 +342,7 @@ public class GameControllerBehaviour : MonoBehaviour
             {
                 if (apiClient.players.Length != 0)
                 {
-                    arrayCapacity = apiClient.players.Length < leaderboardNames.Capacity ? apiClient.players.Length : leaderboardNames.Capacity;
+                    arrayCapacity = apiClient.players.Length < leaderboardNames.Count ? apiClient.players.Length : leaderboardNames.Count;
 
                     for (int i = 0; i < arrayCapacity; i++)
                     {
@@ -306,19 +363,22 @@ public class GameControllerBehaviour : MonoBehaviour
         return (int)gameState;
     }
 
+    public List<GameObject> GetEnemies()
+    {
+        return enemiesList;
+    }
+
     private void UpdateStuff()
     {
-
-
         if (gameState == States.Gaming)
         {
-            ammoText.text = "Ammo: " + mobilePlayerBehaviour.GetAmmo() + "\nMax Ammo: " + mobilePlayerBehaviour.GetMaxAmmo();
-            pointsText.text = "Points: " + playerPoints;
-            healthText.text = "Health: " + mobilePlayerBehaviour.GetHealth();
+            ammoText.text = mobilePlayerBehaviour.GetAmmo() + "\n\n\n\n" + mobilePlayerBehaviour.GetMaxAmmo();
+            pointsText.text = "Total Points\n" + playerPoints;
+            healthText.text = mobilePlayerBehaviour.GetHealth().ToString();
         }
         else if (gameState == States.Dead)
         {
-            totalPoints.text = "Total Points: " + playerPoints;
+            totalPoints.text = "Total Points\n" + playerPoints;
         }
     }
 
@@ -345,7 +405,6 @@ public class GameControllerBehaviour : MonoBehaviour
     public void ShowEndScreen()
     {
         gameState = States.Dead;
-        player.transform.position = playerSpawnPoint[0].transform.position;
         menu.SetActive(false);
         joystickCanvas.SetActive(false);
         playingHUD.SetActive(false);

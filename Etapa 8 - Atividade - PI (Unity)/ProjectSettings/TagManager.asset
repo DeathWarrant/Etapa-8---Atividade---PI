@@ -10,6 +10,7 @@ TagManager:
   - Ammo Crate
   - Spawn Point
   - Health Pack
+  - Special Weapon Crate
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - Bullet
   - Crate
   - GroundWall
-  - 
+  - Player
   - 
   - 
   - 

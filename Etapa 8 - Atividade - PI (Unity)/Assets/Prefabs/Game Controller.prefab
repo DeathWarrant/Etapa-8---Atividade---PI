@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4162796834895956}
   - component: {fileID: 114921199015678368}
   - component: {fileID: 114214838309083498}
+  - component: {fileID: 82270480716693724}
   m_Layer: 0
   m_Name: Game Controller
   m_TagString: GameController
@@ -41,6 +42,86 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &82270480716693724
+AudioSource:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1512635613873676}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    - serializedVersion: 2
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 0
 --- !u!114 &114214838309083498
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -68,17 +149,17 @@ MonoBehaviour:
   AIActive: 1
   enemyLimit: 5
   enemyWaveSize: 5
-  enemyHealthToAdd: 3
-  enemyDamageToAdd: 3
-  enemySpeedToAdd: 0.5
+  enemyHealthToAdd: 2
+  enemyDamageToAdd: 1
+  enemySpeedToAdd: 0.1
   timeToRespawnAmmoCrate: 30
   timeToRespawnHealthPack: 30
-  timeToRespawnSpecialWeaponCrate: 30
+  timeToRespawnSpecialWeaponCrate: 60
   player: {fileID: 0}
   playerSpawnPoint:
   - {fileID: 0}
   - {fileID: 0}
-  enemyToSpawn: {fileID: 1860316013072974, guid: 6ea115e6fca230944a6eb6f3b5a9d01c,
+  enemyToSpawn: {fileID: 1434188663705200, guid: c32bd81949344984aadf1bd560bf48ea,
     type: 2}
   joystickCanvas: {fileID: 0}
   menu: {fileID: 0}
@@ -106,3 +187,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  crateSounds:
+  - {fileID: 8300000, guid: b3bc8e7c6ac961a4ba9ee5a066bcdf19, type: 3}
+  - {fileID: 8300000, guid: c4c51c35acd93034380384033ed30e99, type: 3}
+  - {fileID: 8300000, guid: 3c920dfd1494337489efeb950ec3b34b, type: 3}

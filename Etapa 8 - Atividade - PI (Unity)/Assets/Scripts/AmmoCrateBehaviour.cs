@@ -11,6 +11,7 @@ public class AmmoCrateBehaviour : MonoBehaviour
         if(collider.CompareTag("Player"))
         {
             collider.gameObject.GetComponent<MobilePlayerBehaviour>().AddAmmo(ammoAmmount);
+            GameControllerBehaviour.gameControllerInstance.PlayCrateSound(1);
             gameObject.SetActive(false);
         }
     }

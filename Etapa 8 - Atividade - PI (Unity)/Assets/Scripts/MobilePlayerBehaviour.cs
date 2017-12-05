@@ -127,6 +127,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Alpha2))
             {
                 ChangeWeapon(1, 100);
+                GameControllerBehaviour.gameControllerInstance.PlayCrateSound(2);
             }
 
             leftJoystickInput = leftJoystick.GetInputDirection();
@@ -241,7 +242,11 @@ public class MobilePlayerBehaviour : MonoBehaviour
                 rotationTarget.localRotation = Quaternion.Slerp(rotationTarget.localRotation, Quaternion.LookRotation(lookDirection) * Quaternion.Euler(0.0f, 55.0f, 0.0f), rotationSpeed * Time.deltaTime);
             }
 
-            Fire();
+            float tempX = rightJoystickX * -1;
+            float tempY = rightJoystickY * -1;
+
+            if (rightJoystickX + rightJoystickY > 0.9f || tempX + tempY > 0.9f || rightJoystickX + tempY > 0.9f || tempX + rightJoystickY > 0.9f)
+                Fire();
         }
 
         // INPUT FROM BOTH JOYSTICKS
@@ -274,7 +279,11 @@ public class MobilePlayerBehaviour : MonoBehaviour
 
             rigidBody.transform.Translate(leftJoystickInput * Time.fixedDeltaTime);
 
-            Fire();
+            float tempX = rightJoystickX * -1;
+            float tempY = rightJoystickY * -1;
+
+            if (rightJoystickX + rightJoystickY > 0.9f || tempX + tempY > 0.9f || rightJoystickX + tempY > 0.9f || tempX + rightJoystickY > 0.9f)
+                Fire();
         }
 
         if (leftJoystickX != 0.0f || leftJoystickY != 0.0f)
@@ -377,7 +386,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
                     bulletPoolCounter[(int)playerWeapon] = 0;
                 }
 
-                audioSource.PlayOneShot(weaponSounds[(int)playerWeapon], 0.3f);
+                audioSource.PlayOneShot(weaponSounds[(int)playerWeapon], 0.2f);
                 bulletPool[bulletPoolCounter[(int)playerWeapon]].transform.position = bulletSpawn.transform.position;
                 bulletPool[bulletPoolCounter[(int)playerWeapon]].transform.rotation = bulletSpawn.transform.rotation;
                 bulletPool[bulletPoolCounter[(int)playerWeapon]].SetActive(true);
@@ -396,7 +405,7 @@ public class MobilePlayerBehaviour : MonoBehaviour
                     bulletPoolCounter[(int)playerWeapon] = 0;
                 }
 
-                audioSource.PlayOneShot(weaponSounds[(int)playerWeapon], 0.3f);
+                audioSource.PlayOneShot(weaponSounds[(int)playerWeapon], 0.25f);
                 bulletPoolShotgun[bulletPoolCounter[(int)playerWeapon]].transform.position = bulletSpawn.transform.position;
                 bulletPoolShotgun[bulletPoolCounter[(int)playerWeapon]].transform.rotation = bulletSpawn.transform.rotation;
                 bulletPoolShotgun[bulletPoolCounter[(int)playerWeapon]].SetActive(true);
@@ -490,5 +499,16 @@ public class MobilePlayerBehaviour : MonoBehaviour
     {
         yield return new WaitForSeconds(0.2f);
         audioSource.PlayOneShot(damageSounds[Random.Range(0, damageSounds.Length)], 0.7f);
+    }
+
+    private void OnTriggerEnter(Collider collider)
+    {
+        if(collider.CompareTag("Death Zone") && GameControllerBehaviour.gameControllerInstance.GetGameState() == 1)
+        {
+            health = 0;
+            isDead = true;
+            animator.SetBool("Dead", isDead);
+            GameControllerBehaviour.gameControllerInstance.ShowEndScreen();
+        }
     }
 }

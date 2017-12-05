@@ -44,6 +44,7 @@ public class GameControllerBehaviour : MonoBehaviour
     public List<Text> leaderboardNames = new List<Text>();
     [Tooltip("Fico imaginando por que está tão curioso em vir aqui? -.-' Sai daqui meu.")]
     public List<Text> leaderboardPoints = new List<Text>();
+    public AudioClip[] crateSounds = null;
 
     private enum States { Menu, Gaming, Dead }
     private States gameState = States.Menu;
@@ -58,12 +59,14 @@ public class GameControllerBehaviour : MonoBehaviour
     private float[] healthPackSpawnTimers = null;
     private float[] specialWeaponCrateSpawnTimers = null;
     private APIClient apiClient = null;
+    private AudioSource audioSource = null;
     private GameObject enemySpawnPoint = null;
     private GameObject[] ammoCrates;
     private GameObject[] healthPacks;
     private GameObject[] specialWeaponCrates;
     private List<GameObject> enemiesList = new List<GameObject>(0);
     private MobilePlayerBehaviour mobilePlayerBehaviour = null;
+    private DualJoystickTouchContoller joystickTouchController = null;
     private ParticleSystem enemySpawnParticleSystem = null;
     private Text ammoText = null;
     private Text pointsText = null;
@@ -79,7 +82,6 @@ public class GameControllerBehaviour : MonoBehaviour
     private void Update()
     {
         UpdateStuff();
-        Debug.Log("Enemy List: " +enemiesList.Count);
     }
 
     private void StartComponents()
@@ -98,15 +100,18 @@ public class GameControllerBehaviour : MonoBehaviour
         StartCoroutine(UpdateMenu());
         gameState = States.Menu;
 
+        audioSource = GetComponent<AudioSource>();
         mobilePlayerBehaviour = player.GetComponent<MobilePlayerBehaviour>();
         ammoText = playingHUD.transform.Find("Ammo").GetComponent<Text>();
         pointsText = playingHUD.transform.Find("Points").GetComponent<Text>();
         healthText = playingHUD.transform.Find("Health").GetComponent<Text>();
         totalPoints = endScreen.transform.Find("Background").Find("Background").Find("Total Points").GetComponent<Text>();
         inputField = endScreen.transform.Find("Background").Find("Background").Find("InputField Background").Find("InputField Text").GetComponent<InputField>();
+        joystickTouchController = joystickCanvas.transform.Find("Touch Controller").GetComponent<DualJoystickTouchContoller>();
         player.transform.position = playerSpawnPoint[0].transform.position;
 
         isFirstStart = true;
+        joystickTouchController.SetIsAbleToTouch(false);
         menu.SetActive(true);
         joystickCanvas.SetActive(false);
         playingHUD.SetActive(false);
@@ -120,6 +125,7 @@ public class GameControllerBehaviour : MonoBehaviour
     private void RestartMenu()
     {
         gameState = States.Menu;
+        StartCoroutine(UpdateMenu());
         GameObject[] enemies = new GameObject[enemyLimit];
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
 
@@ -135,8 +141,8 @@ public class GameControllerBehaviour : MonoBehaviour
         joystickCanvas.SetActive(false);
         playingHUD.SetActive(false);
         endScreen.SetActive(false);
-        apiClient.GetLeaderboard();
         player.transform.position = playerSpawnPoint[0].transform.position;
+        apiClient.GetLeaderboard();
     }
 
     private void StartGameComponents()
@@ -160,6 +166,7 @@ public class GameControllerBehaviour : MonoBehaviour
         joystickCanvas.SetActive(true);
         playingHUD.SetActive(true);
         endScreen.SetActive(false);
+        joystickTouchController.SetIsAbleToTouch(true);
         ammoCrates = GameObject.FindGameObjectsWithTag("Ammo Crate");
         healthPacks = GameObject.FindGameObjectsWithTag("Health Pack");
         specialWeaponCrates = GameObject.FindGameObjectsWithTag("Special Weapon Crate");
@@ -210,6 +217,7 @@ public class GameControllerBehaviour : MonoBehaviour
         joystickCanvas.SetActive(true);
         playingHUD.SetActive(true);
         endScreen.SetActive(false);
+        joystickTouchController.SetIsAbleToTouch(true);
         playerPoints = 0;
 
         for (int i = 0; i < ammoCrateSpawnTimers.Length; i++)
@@ -232,7 +240,7 @@ public class GameControllerBehaviour : MonoBehaviour
 
     private IEnumerator RespawnGameObjects()
     {
-        while (true)
+        while (gameState == States.Gaming)
         {
             if (enemySpawnPoint == null)
             {
@@ -300,7 +308,36 @@ public class GameControllerBehaviour : MonoBehaviour
     {
         yield return new WaitForSeconds(1.0f);
 
-        if (enemiesList.Count < 5 && enemySpawnerController < 5)
+        if (enemiesList.Count < 5)
+        {
+            GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
+            enemiesList.Add(enemy);
+
+            if (wave > 0)
+            {
+                enemy.GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd, enemyDamageToAdd, enemySpeedToAdd, wave);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < enemiesList.Count; i++)
+            {
+                if (enemiesList[i] == null)
+                {
+                    GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
+                    enemiesList.Insert(i, enemy);
+
+                    if (wave > 0)
+                    {
+                        enemy.GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd, enemyDamageToAdd, enemySpeedToAdd, wave);
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        /*if (enemiesList.Count < 5 && enemySpawnerController < 5)
         {
             GameObject enemy = Instantiate(enemyToSpawn, enemySpawnPoint.transform.position, enemySpawnPoint.transform.rotation);
             enemiesList.Add(enemy);
@@ -323,6 +360,7 @@ public class GameControllerBehaviour : MonoBehaviour
 
                     if (wave > 0)
                     {
+                        Debug.Log("Wave: " + wave);
                         enemiesList[i].GetComponent<EnemyBehaviour>().IncreasePower(enemyHealthToAdd * wave, enemyDamageToAdd * wave, enemySpeedToAdd * wave);
                     }
 
@@ -331,26 +369,23 @@ public class GameControllerBehaviour : MonoBehaviour
                     break;
                 }
             }
-        }
+        }*/
     }
 
     private IEnumerator UpdateMenu()
     {
-        while (true)
+        while (gameState == States.Menu)
         {
-            if (gameState == States.Menu)
+            if (apiClient.players.Length != 0)
             {
-                if (apiClient.players.Length != 0)
+                arrayCapacity = apiClient.players.Length < leaderboardNames.Count ? apiClient.players.Length : leaderboardNames.Count;
+
+                for (int i = 0; i < arrayCapacity; i++)
                 {
-                    arrayCapacity = apiClient.players.Length < leaderboardNames.Count ? apiClient.players.Length : leaderboardNames.Count;
+                    leaderboardNames[i].text = apiClient.players[i].Name;
+                    leaderboardPoints[i].text = apiClient.players[i].Points.ToString();
 
-                    for (int i = 0; i < arrayCapacity; i++)
-                    {
-                        leaderboardNames[i].text = apiClient.players[i].Name;
-                        leaderboardPoints[i].text = apiClient.players[i].Points.ToString();
-
-                        Debug.Log(apiClient.players[i].Name);
-                    }
+                    Debug.Log(apiClient.players[i].Name);
                 }
             }
 
@@ -366,6 +401,11 @@ public class GameControllerBehaviour : MonoBehaviour
     public List<GameObject> GetEnemies()
     {
         return enemiesList;
+    }
+
+    public void PlayCrateSound(int p_crateID)
+    {
+        audioSource.PlayOneShot(crateSounds[p_crateID], 0.7f);
     }
 
     private void UpdateStuff()
@@ -390,7 +430,8 @@ public class GameControllerBehaviour : MonoBehaviour
         {
             waveCounter++;
         }
-        else
+
+        if(waveCounter >= enemyWaveSize)
         {
             wave++;
             waveCounter = 0;
@@ -405,7 +446,8 @@ public class GameControllerBehaviour : MonoBehaviour
     public void ShowEndScreen()
     {
         gameState = States.Dead;
-        menu.SetActive(false);
+        joystickTouchController.SetIsAbleToTouch(false);
+        menu.SetActive(false);        
         joystickCanvas.SetActive(false);
         playingHUD.SetActive(false);
         endScreen.SetActive(true);

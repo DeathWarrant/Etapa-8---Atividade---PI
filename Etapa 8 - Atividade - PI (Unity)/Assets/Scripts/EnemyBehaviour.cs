@@ -20,6 +20,7 @@ public class EnemyBehaviour : MonoBehaviour
     public float distanceToCauseDamage = 0.0f;
     public float walkCooldownTime = 0.0f;
     public GameObject damageParticle = null;
+    public GameObject deathParticle = null;
     public AudioClip attackSound = null;
     public AudioClip[] walkSounds = null;
     public AudioClip[] randomSounds = null;
@@ -29,6 +30,7 @@ public class EnemyBehaviour : MonoBehaviour
     private bool isWalkOnCooldown = false;
     private bool isRightStep = false;
     private bool randomTimeDecided = false;
+    private int health = 0;
     private int randomSoundNumber = 0;
     private int randomSoundTempNumber = 0;
     private float afkTimer = 0.0f;
@@ -36,12 +38,13 @@ public class EnemyBehaviour : MonoBehaviour
     private float walkCooldownTimer = 0.0f;
     private float randomSoundTimer = 0.0f;
     private float randomSoundTime = 0.0f;
+    private Animator animator = null;
     private AudioSource audioSource = null;
     private GameObject player = null;
     private MobilePlayerBehaviour mobilePlayerBehaviour = null;
     private NavMeshAgent navMeshAgent = null;
 
-    private void Start()
+    private void Awake()
     {
         StartComponents();
     }
@@ -54,11 +57,15 @@ public class EnemyBehaviour : MonoBehaviour
     private void StartComponents()
     {
         player = GameObject.FindGameObjectWithTag("Player");
+        animator = GetComponent<Animator>();
+        animator.SetBool("Walk", false);
+        animator.SetBool("Idle", true);
         afkTimer = 0.0f;
         isOnAFKTime = true;
         randomSoundNumber = 0;
         randomSoundTempNumber = -1;
         randomTimeDecided = false;
+        health = baseHealth;
 
         if (GameControllerBehaviour.gameControllerInstance.GetGameState() != 2)
         {
@@ -74,6 +81,7 @@ public class EnemyBehaviour : MonoBehaviour
 
     private void RestartComponents()
     {
+        health = baseHealth;
         afkTimer = 0.0f;
         isOnAFKTime = true;
         randomSoundNumber = 0;
@@ -91,6 +99,8 @@ public class EnemyBehaviour : MonoBehaviour
             {
                 isOnAFKTime = false;
                 navMeshAgent.speed = baseEnemySpeed;
+                animator.SetBool("Walk", true);
+                animator.SetBool("Idle", false);
             }
 
             if(!randomTimeDecided)
@@ -135,6 +145,8 @@ public class EnemyBehaviour : MonoBehaviour
                     if (sqrLen < distanceToCauseDamage * distanceToCauseDamage)
                     {
                         audioSource.PlayOneShot(attackSound, 0.1f);
+                        animator.SetBool("Walk", false);
+                        animator.SetBool("Idle", false);
                         mobilePlayerBehaviour.DoDamage(baseDamage);
                         navMeshAgent.speed = 0.0f;
                         isAttackOnCooldown = true;
@@ -149,6 +161,8 @@ public class EnemyBehaviour : MonoBehaviour
                 {
                     attackCooldownTimer = 0.0f;
                     navMeshAgent.speed = baseEnemySpeed;
+                    animator.SetBool("Walk", true);
+                    animator.SetBool("Idle", false);
                     isAttackOnCooldown = false;
                 }
             }
@@ -215,22 +229,29 @@ public class EnemyBehaviour : MonoBehaviour
 
     public void DoDamage(int p_damage)
     {
-        baseHealth -= p_damage;
-        Instantiate(damageParticle, transform.position, transform.rotation);
+        health -= p_damage;
+        Vector3 damageVector = new Vector3(transform.position.x, transform.position.y + 2.0f, transform.position.z);
+        Instantiate(damageParticle, damageVector, transform.rotation);
 
-        if (baseHealth <= 0)
+        if (health <= 0)
         {
-            baseHealth = 0;
+            health = 0;
+            Instantiate(deathParticle, damageVector, transform.rotation);
             GameControllerBehaviour.gameControllerInstance.AddPoints(pointsForKilling);
             GameControllerBehaviour.gameControllerInstance.DecreaseEnemyCounter();
-            gameObject.SetActive(false);
+            Destroy(gameObject);
+            //gameObject.SetActive(false);
         }
     }
 
-    public void IncreasePower(int p_health, int p_damage, float p_speed)
+    public void IncreasePower(int p_health, int p_damage, float p_speed, int p_wave)
     {
-        baseHealth += p_health;
-        baseDamage += p_damage;
+        p_health *= p_wave;
+        p_damage *= p_wave;
+        p_speed *= p_wave;
+
+        health += p_health;
+        baseDamage  += p_damage;
         baseEnemySpeed += p_speed;
     }
 

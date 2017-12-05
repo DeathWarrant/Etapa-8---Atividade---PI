@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class ShotgunShotBehaviour : MonoBehaviour
 {
-    public int damage = 0;
-    public float angleToCauseDamage = 0;
+    public int maxDamage = 0;
+    public int minDamage = 0;
     public float lifeTime = 0.0f;
     public float distanceToCauseDamage = 0.0f;
 
@@ -13,12 +13,14 @@ public class ShotgunShotBehaviour : MonoBehaviour
     private float timer = 0.0f;
     private List<GameObject> enemiesList = new List<GameObject>(0);
     private ParticleSystem particles = null;
+    private Transform yAxisReferece = null;
 
     private void Start()
     {
         readyToShoot = true;
         enemiesList = new List<GameObject>(0);
         particles = GetComponent<ParticleSystem>();
+        yAxisReferece = transform;
     }
 
     private void Update()
@@ -56,20 +58,27 @@ public class ShotgunShotBehaviour : MonoBehaviour
 
         for (int i = 0; i < enemiesList.Count; i++)
         {
-            if (enemiesList[i].activeInHierarchy)
+            if (enemiesList[i] != null)
             {
-                Vector3 targetDirection = enemiesList[i].transform.position - transform.position;
-                float angle = Vector3.Angle(targetDirection, transform.forward);
-
-                if (angle < angleToCauseDamage)
+                if (enemiesList[i].activeInHierarchy)
                 {
                     Vector3 direction = enemiesList[i].transform.position - transform.localPosition;
                     float sqrLen = direction.sqrMagnitude;
 
                     if (sqrLen < distanceToCauseDamage * distanceToCauseDamage)
                     {
-                        enemiesList[i].GetComponent<EnemyBehaviour>().DoDamage(damage);
-                        Debug.Log("Deu dano");
+                        float dotProduct = Vector3.Dot(transform.forward, direction.normalized);
+
+                        float distanceToCalculateDotComparison = direction.sqrMagnitude > 16.0f ? direction.magnitude / 10.0f : direction.magnitude / 30.0f;
+                        float comparisonLerp = Mathf.Lerp(0.25f, 0.9f, distanceToCalculateDotComparison);
+
+                        if (dotProduct > comparisonLerp)
+                        {
+                            float distanceToCalculateDamage = direction.magnitude / 13.0f;
+                            float damage = Mathf.Lerp(maxDamage, minDamage, distanceToCalculateDamage - 0.15f);
+                            enemiesList[i].GetComponent<EnemyBehaviour>().DoDamage((int)damage);
+                            Debug.Log("Esta na frente");
+                        }
                     }
                 }
             }

@@ -19,12 +19,14 @@ public class HeathCrateBehaviour : MonoBehaviour
             {
                 if (playerHealth + healthAmmount <= 100)
                 {
-                    collider.gameObject.GetComponent<MobilePlayerBehaviour>().AddHealth(healthAmmount);                 
+                    collider.gameObject.GetComponent<MobilePlayerBehaviour>().AddHealth(healthAmmount);
+                    GameControllerBehaviour.gameControllerInstance.PlayCrateSound(0);
                 }
                 else
                 {
                     lessHealthAmmount = 100 - playerHealth;
                     collider.gameObject.GetComponent<MobilePlayerBehaviour>().AddHealth(lessHealthAmmount);
+                    GameControllerBehaviour.gameControllerInstance.PlayCrateSound(0);
                 }
 
                 gameObject.SetActive(false);

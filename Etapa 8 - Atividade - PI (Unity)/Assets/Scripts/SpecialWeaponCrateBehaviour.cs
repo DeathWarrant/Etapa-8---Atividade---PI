@@ -22,6 +22,7 @@ public class SpecialWeaponCrateBehaviour : MonoBehaviour
             else if(weaponID != 0 && ammoAmmount != 0)
             {
                 collider.gameObject.GetComponent<MobilePlayerBehaviour>().ChangeWeapon(weaponID, ammoAmmount);
+                GameControllerBehaviour.gameControllerInstance.PlayCrateSound(2);
                 gameObject.SetActive(false);
             }
         }

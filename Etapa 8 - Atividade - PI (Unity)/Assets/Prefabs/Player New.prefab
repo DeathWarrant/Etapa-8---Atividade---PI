@@ -2089,7 +2089,7 @@ MonoBehaviour:
   rotationSpeed: 10
   maxAmmoOnNormalWeapon: 15
   maxCarryingAmmo: 30
-  moveSpeed: 7
+  moveSpeed: 8
   shootCooldown: 0.25
   shotgunShootCooldown: 1
   reloadTime: 2
@@ -2100,8 +2100,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 2190e9bb913a2894ab9865ebcd482a12, type: 3}
   - {fileID: 8300000, guid: c5cfe53761749274088adebb63ae2412, type: 3}
   weaponSounds:
-  - {fileID: 8300000, guid: 7a6ef2c435463db4ba08ce53df5d5780, type: 3}
-  - {fileID: 8300000, guid: a011b9b7cf8d6044eab8bc988656da9f, type: 3}
+  - {fileID: 8300000, guid: 64a96b3387c07594c8c02e0a07588c51, type: 3}
+  - {fileID: 8300000, guid: edd17ef89edd83c45acf38fa8cc58621, type: 3}
   reloadSound: {fileID: 8300000, guid: 6ccf8688944b14e49869a1378bc35525, type: 3}
   bulletPrefabShotgun: {fileID: 1325165605780624, guid: 4a0beab2783965844a295e8d33a7f5f5,
     type: 2}

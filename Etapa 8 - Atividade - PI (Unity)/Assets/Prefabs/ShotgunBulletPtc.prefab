@@ -53,9 +53,9 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4674537152126954}
+  - component: {fileID: 114635601639690786}
   - component: {fileID: 198985957360900316}
   - component: {fileID: 199059600072967976}
-  - component: {fileID: 114635601639690786}
   m_Layer: 0
   m_Name: ShotgunBulletPtc
   m_TagString: Untagged
@@ -146,10 +146,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 055c62195e3ec01409d6623d4d32bb9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 25
-  angleToCauseDamage: 20
+  maxDamage: 20
+  minDamage: 1
   lifeTime: 2
-  distanceToCauseDamage: 15
+  distanceToCauseDamage: 20
 --- !u!198 &198283900668374294
 ParticleSystem:
   m_ObjectHideFlags: 1

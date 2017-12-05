@@ -198,4 +198,10 @@ public class DualJoystickTouchContoller : MonoBehaviour
             }
         }
     }
+
+    public void SetIsAbleToTouch(bool p_decision)
+    {
+        leftJoystick.SetIsAbleToTouch(p_decision);
+        rightJoystick.SetIsAbleToTouch(p_decision);
+    }
 }

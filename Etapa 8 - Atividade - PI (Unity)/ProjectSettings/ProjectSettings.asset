@@ -151,8 +151,8 @@ PlayerSettings:
     Android: com.TrevasSqr.PI
   buildNumber: {}
   AndroidBundleVersionCode: 1
-  AndroidMinSdkVersion: 21
-  AndroidTargetSdkVersion: 25
+  AndroidMinSdkVersion: 16
+  AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
   aotOptions: 
   stripEngineCode: 1
